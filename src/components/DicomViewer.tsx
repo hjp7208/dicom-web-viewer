@@ -275,7 +275,18 @@ const DicomViewport = ({
 
         {/* Per-Viewport Scrollbar */}
         {series && series.imageIds.length > 1 && (
-          <div className="absolute top-0 bottom-0 right-0 w-6 bg-transparent hover:bg-black/60 transition-colors duration-300 ease-in-out flex flex-col items-center py-4 z-20 group">
+          <div 
+            className="absolute top-0 bottom-0 right-0 w-6 bg-transparent hover:bg-black/60 transition-colors duration-300 ease-in-out flex flex-col items-center py-4 z-20 group"
+            onWheel={(e) => {
+              const delta = e.deltaY > 0 ? 1 : -1;
+              const newIdx = Math.max(0, Math.min(series.imageIds.length - 1, sliceIndex + delta));
+              const renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
+              const viewport = renderingEngine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
+              if (viewport) {
+                viewport.setImageIdIndex(newIdx);
+              }
+            }}
+          >
             <input 
               type="range" 
               min="0" 
