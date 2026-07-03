@@ -37,3 +37,8 @@ next-env.d.ts
 
 # docx
 *.docx
+
+# AI Workspace & Backend Refs
+/scratch/
+/backend_ref/
+/orthanc-db/
