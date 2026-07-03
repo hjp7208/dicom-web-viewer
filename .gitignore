@@ -42,3 +42,4 @@ next-env.d.ts
 /scratch/
 /backend_ref/
 /orthanc-db/
+/.agents/
