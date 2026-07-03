@@ -9,18 +9,31 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@cornerstonejs/core": "^5.0.13",
+    "@cornerstonejs/dicom-image-loader": "^5.0.13",
+    "@cornerstonejs/tools": "^5.0.13",
+    "dcmjs": "^0.52.0",
+    "dicom-parser": "^1.8.21",
+    "lucide-react": "^1.21.0",
+    "next": "14.2.35",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.35"
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.35",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.35"
-  }
+    "typescript": "^5"
+  },
+  "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
 }

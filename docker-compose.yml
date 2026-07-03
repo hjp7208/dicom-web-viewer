@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  orthanc:
+    image: jodogne/orthanc-plugins:latest
+    container_name: orthanc_pacs
+    ports:
+      - "4242:4242"   # DICOM 표준 통신 포트 (C-STORE, C-FIND 등)
+      - "8042:8042"   # Orthanc 웹 관리자 GUI 및 REST API / DICOMweb 포트
+    environment:
+      - ORTHANC_NAME=My_Local_PACS
+      # 웹 관리자 로그인 계정 설정 (ID: admin / PW: admin)
+      - ORTHANC__REGISTERED_USERS={"admin":"admin"}
+      - ORTHANC_CENTRAL_REPOSITORY_ENABLED=true
+    volumes:
+      # 컨테이너가 꺼져도 DICOM 파일과 DB가 유지되도록 로컬 볼륨 연결
+      - ./orthanc-db:/var/lib/orthanc/db
+    restart: unless-stopped
