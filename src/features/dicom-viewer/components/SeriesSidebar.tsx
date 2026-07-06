@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { useViewerStore } from '@/features/dicom-viewer/store/useViewerStore';
 import { FolderOpen, Layers, Maximize2, MoreVertical, Search, CheckCircle2 } from 'lucide-react';
 import { SeriesData } from '@/features/dicom-viewer/utils/dicomParserUtil';
@@ -8,10 +8,23 @@ import * as cornerstone from '@cornerstonejs/core';
 
 const Thumbnail = ({ imageId, id }: { imageId: string, id: string }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        observer.disconnect();
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
-    if (!containerRef.current || !imageId) return;
+    if (!isVisible || !containerRef.current || !imageId) return;
 
     const initThumb = async () => {
       let engine = cornerstone.getRenderingEngine('thumbnail_engine');
