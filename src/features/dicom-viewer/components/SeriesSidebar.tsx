@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { useViewerStore } from '@/features/dicom-viewer/store/useViewerStore';
 import { FolderOpen, Layers, Maximize2, MoreVertical, Search, CheckCircle2 } from 'lucide-react';
 import { SeriesData } from '@/features/dicom-viewer/utils/dicomParserUtil';
@@ -64,12 +64,14 @@ export default function SeriesSidebar() {
   };
 
   // Group by date (Study 단위)
-  const groupedSeries = loadedSeries.reduce((acc, series) => {
-    const date = series.study?.date || 'Unknown Date';
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(series);
-    return acc;
-  }, {} as Record<string, SeriesData[]>);
+  const groupedSeries = useMemo(() => {
+    return loadedSeries.reduce((acc, series) => {
+      const date = series.study?.date || 'Unknown Date';
+      if (!acc[date]) acc[date] = [];
+      acc[date].push(series);
+      return acc;
+    }, {} as Record<string, SeriesData[]>);
+  }, [loadedSeries]);
 
   if (loadedSeries.length === 0) {
     return (
