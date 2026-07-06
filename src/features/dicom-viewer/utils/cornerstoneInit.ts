@@ -1,6 +1,7 @@
 import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneTools from '@cornerstonejs/tools';
 import cornerstoneDICOMImageLoader from '@cornerstonejs/dicom-image-loader';
+import { addAllTools } from './cornerstoneToolsUtil';
 
 let initialized = false;
 
@@ -35,13 +36,7 @@ export default async function initCornerstone() {
   }, 10000); // high priority
   
   // Add tools to cornerstoneTools
-  cornerstoneTools.addTool(cornerstoneTools.PanTool);
-  cornerstoneTools.addTool(cornerstoneTools.ZoomTool);
-  cornerstoneTools.addTool(cornerstoneTools.WindowLevelTool);
-  cornerstoneTools.addTool(cornerstoneTools.StackScrollTool);
-  cornerstoneTools.addTool(cornerstoneTools.LengthTool);
-  cornerstoneTools.addTool(cornerstoneTools.AngleTool);
-  cornerstoneTools.addTool(cornerstoneTools.RectangleROITool);
+  addAllTools();
 
   initialized = true;
 }

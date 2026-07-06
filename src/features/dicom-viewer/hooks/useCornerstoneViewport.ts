@@ -4,9 +4,9 @@ import * as cornerstoneTools from '@cornerstonejs/tools';
 import { useViewerStore } from '../store/useViewerStore';
 import { SeriesData } from '../utils/dicomParserUtil';
 import initCornerstone from '../utils/cornerstoneInit';
+import { DICOM_TOOL_GROUP_ID, setupToolGroup } from '../utils/cornerstoneToolsUtil';
 
 const renderingEngineId = 'dicom_viewer_engine';
-const toolGroupId = 'dicom_tool_group';
 
 interface UseCornerstoneViewportProps {
   viewerRef: React.RefObject<HTMLDivElement>;
@@ -55,17 +55,7 @@ export const useCornerstoneViewport = ({
         const viewport = renderingEngine.getViewport(viewportId) as cornerstone.Types.IStackViewport;
 
         // ToolGroup setup
-        let toolGroup = cornerstoneTools.ToolGroupManager.getToolGroup(toolGroupId);
-        if (!toolGroup) {
-          toolGroup = cornerstoneTools.ToolGroupManager.createToolGroup(toolGroupId);
-          toolGroup?.addTool(cornerstoneTools.PanTool.toolName);
-          toolGroup?.addTool(cornerstoneTools.ZoomTool.toolName);
-          toolGroup?.addTool(cornerstoneTools.WindowLevelTool.toolName);
-          toolGroup?.addTool(cornerstoneTools.StackScrollTool.toolName);
-          toolGroup?.addTool(cornerstoneTools.LengthTool.toolName);
-          toolGroup?.addTool(cornerstoneTools.AngleTool.toolName);
-          toolGroup?.addTool(cornerstoneTools.RectangleROITool.toolName);
-        }
+        const toolGroup = setupToolGroup();
         toolGroup?.addViewport(viewportId, renderingEngineId);
 
         // Set tool bindings
@@ -121,7 +111,7 @@ export const useCornerstoneViewport = ({
   // Update tool group when activeTool changes
   useEffect(() => {
     if (!isReady || !activeTool) return;
-    const toolGroup = cornerstoneTools.ToolGroupManager.getToolGroup(toolGroupId);
+    const toolGroup = cornerstoneTools.ToolGroupManager.getToolGroup(DICOM_TOOL_GROUP_ID);
     if (toolGroup) {
       const activePrimary = toolGroup.getActivePrimaryMouseButtonTool();
       if (activePrimary && activePrimary !== activeTool) {
