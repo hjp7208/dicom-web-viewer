@@ -10,6 +10,7 @@ const Thumbnail = ({ imageId, id }: { imageId: string, id: string }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let isMounted = true;
     if (!containerRef.current || !imageId) return;
 
     const initThumb = async () => {
@@ -30,15 +31,28 @@ const Thumbnail = ({ imageId, id }: { imageId: string, id: string }) => {
       };
       
       engine.enableElement(viewportInput);
+      
+      if (!isMounted) {
+        engine.disableElement(viewportId);
+        return;
+      }
+
       const viewport = engine.getViewport(viewportId) as cornerstone.Types.IStackViewport;
       
-      await viewport.setStack([imageId], 0);
-      viewport.render();
+      try {
+        await viewport.setStack([imageId], 0);
+        if (isMounted) {
+          viewport.render();
+        }
+      } catch (e) {
+        console.error('Thumbnail render error:', e);
+      }
     };
 
     initThumb();
 
     return () => {
+      isMounted = false;
       const e = cornerstone.getRenderingEngine('thumbnail_engine');
       if (e) e.disableElement(`thumb_${id}`);
     };
