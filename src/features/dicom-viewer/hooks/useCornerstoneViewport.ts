@@ -156,30 +156,6 @@ export const useCornerstoneViewport = ({
             state.setCurrentSliceIndex(newIdx);
             if (onSliceChange) onSliceChange(newIdx);
           }
-          setTimeout(() => {
-            const engine = cornerstone.getRenderingEngine(renderingEngineId);
-            const vp = engine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
-            if (vp) {
-              const currentImageId = vp.getCurrentImageId();
-              const image = cornerstone.cache.getImage(currentImageId);
-              if (image) {
-                const pixels = image.getPixelData();
-                const prevPixels = (window as any)._prevPixels;
-                if (prevPixels && prevPixels.length === pixels.length) {
-                  let isIdentical = true;
-                  // Check a sample of pixels to avoid massive loop freeze, but enough to be sure
-                  for (let i = 0; i < pixels.length; i += 100) {
-                    if (prevPixels[i] !== pixels[i]) {
-                      isIdentical = false;
-                      break;
-                    }
-                  }
-                  console.log(`[Diagnostic] STACK_NEW_IMAGE Frame: ${newIdx}. Is exactly identical to previous frame? ${isIdentical}`);
-                }
-                (window as any)._prevPixels = pixels;
-              }
-            }
-          }, 100);
         };
 
         const handleCameraModified = () => updateViewportInfo();
@@ -297,14 +273,6 @@ export const useCornerstoneViewport = ({
       if (viewport) {
         viewport.setImageIdIndex(newIdx);
         viewport.render();
-        setTimeout(() => {
-          const currentImageId = viewport.getCurrentImageId();
-          const image = cornerstone.cache.getImage(currentImageId);
-          if (image) {
-            const pixels = image.getPixelData();
-            console.log(`[Diagnostic] Frame: ${newIdx}, First 5 pixels:`, pixels?.slice(0, 5));
-          }
-        }, 100);
       }
     };
 
@@ -356,14 +324,6 @@ export const useCornerstoneViewport = ({
     if (viewport) {
       viewport.setImageIdIndex(newIndex);
       viewport.render();
-      setTimeout(() => {
-        const currentImageId = viewport.getCurrentImageId();
-        const image = cornerstone.cache.getImage(currentImageId);
-        if (image) {
-          const pixels = image.getPixelData();
-          console.log(`[Diagnostic] Slider Frame: ${newIndex}, First 5 pixels:`, pixels?.slice(0, 5));
-        }
-      }, 100);
     }
   };
 
@@ -376,14 +336,6 @@ export const useCornerstoneViewport = ({
     if (viewport) {
       viewport.setImageIdIndex(newIdx);
       viewport.render();
-      setTimeout(() => {
-        const currentImageId = viewport.getCurrentImageId();
-        const image = cornerstone.cache.getImage(currentImageId);
-        if (image) {
-          const pixels = image.getPixelData();
-          console.log(`[Diagnostic] Wheel Frame: ${newIdx}, First 5 pixels:`, pixels?.slice(0, 5));
-        }
-      }, 100);
     }
   };
 
