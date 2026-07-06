@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { useViewerStore } from '@/features/dicom-viewer/store/useViewerStore';
-import { FolderOpen, Layers, Maximize2, MoreVertical, Search, CheckCircle2 } from 'lucide-react';
 import { SeriesData } from '@/features/dicom-viewer/utils/dicomParserUtil';
 import * as cornerstone from '@cornerstonejs/core';
 
@@ -69,7 +68,7 @@ const Thumbnail = ({ imageId, id }: { imageId: string, id: string }) => {
       const e = cornerstone.getRenderingEngine('thumbnail_engine');
       if (e) e.disableElement(`thumb_${id}`);
     };
-  }, [imageId, id]);
+  }, [imageId, id, isVisible]);
 
   return <div ref={containerRef} className="absolute inset-0 w-full h-full bg-black" />;
 };

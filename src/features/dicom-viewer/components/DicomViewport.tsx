@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef } from 'react';
 import { useViewerStore } from '../store/useViewerStore';
 import { SeriesData } from '../utils/dicomParserUtil';
 import { useCornerstoneViewport } from '../hooks/useCornerstoneViewport';
@@ -19,7 +19,7 @@ export const DicomViewport = ({
   const viewerRef = useRef<HTMLDivElement>(null);
   const aiOverlayRef = useRef<HTMLDivElement>(null);
   const pixelInfoRef = useRef<HTMLSpanElement>(null);
-  const { isAnonymized, showAiOverlay, aiResults } = useViewerStore();
+  const { isAnonymized } = useViewerStore();
 
   const { sliceIndex, zoom, voi, handleSliderChange, handleWheel } = useCornerstoneViewport({
     viewerRef,
@@ -31,7 +31,6 @@ export const DicomViewport = ({
     pixelInfoRef
   });
 
-  const aiResult = useMemo(() => aiResults.find(r => r.sliceIndex === sliceIndex), [aiResults, sliceIndex]);
   
   const fileIndex = Math.min(sliceIndex, (series?.files.length || 1) - 1);
   const currentInstance = series?.files[fileIndex]?.instance;

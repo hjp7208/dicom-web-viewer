@@ -12,7 +12,7 @@ export default async function initCornerstone() {
 
   // Cornerstone Core Initialization
   await cornerstone.init();
-  
+
   // Cornerstone Tools Initialization
   await cornerstoneTools.init();
 
@@ -21,20 +21,67 @@ export default async function initCornerstone() {
     maxWebWorkers: navigator.hardwareConcurrency ? Math.min(navigator.hardwareConcurrency, 7) : 1,
   });
 
-  // Add custom metadata provider to fix multiframe local files (dicomfile scheme)
-  // cornerstoneDICOMImageLoader registers metadata under the base URI (without ?frame=)
-  // but queries it using the full URI. This provider strips the query string.
+  // Override dicomfile image loader to bypass loadImageFromNaturalizedMetadata bug
+  cornerstone.imageLoader.registerImageLoader('dicomfile', (imageId: string) => {
+    return cornerstoneDICOMImageLoader.wadouri.loadImage(imageId);
+  });
+
+  if (cornerstoneDICOMImageLoader.wadouri.metaData?.metaDataProvider) {
+    cornerstone.metaData.addProvider(cornerstoneDICOMImageLoader.wadouri.metaData.metaDataProvider, 9999);
+  }
+
   cornerstone.metaData.addProvider((type: string, imageId: unknown) => {
+    if (type === 'instance') {
+      return undefined;
+    }
+
     if (typeof imageId === 'string' && imageId.startsWith('dicomfile:')) {
       const qIndex = imageId.indexOf('?');
-      if (qIndex !== -1) {
-        const baseImageId = imageId.substring(0, qIndex);
-        return cornerstone.metaData.get(type, baseImageId);
+      const baseImageId = qIndex !== -1 ? imageId.substring(0, qIndex) : imageId;
+
+      let result;
+      if (qIndex === -1) {
+        if (cornerstoneDICOMImageLoader.wadouri.metaData?.metaDataProvider) {
+          result = cornerstoneDICOMImageLoader.wadouri.metaData.metaDataProvider(type, baseImageId);
+        }
+      } else {
+        result = cornerstone.metaData.get(type, baseImageId);
       }
+
+      // Patch imagePlaneModule for Ultrasound images that lack positional metadata
+      // This prevents "Cannot read properties of undefined (reading '0')" in worldToImageCoords
+      if (type === 'imagePlaneModule' && result) {
+        if (!result.imagePositionPatient) {
+          result = {
+            ...result,
+            imagePositionPatient: [0, 0, 0],
+            imageOrientationPatient: [1, 0, 0, 0, 1, 0],
+            rowCosines: [1, 0, 0],
+            columnCosines: [0, 1, 0],
+          };
+        }
+        if (!result.rowPixelSpacing || !result.columnPixelSpacing) {
+          result.rowPixelSpacing = result.rowPixelSpacing || 1;
+          result.columnPixelSpacing = result.columnPixelSpacing || 1;
+          result.pixelSpacing = [result.rowPixelSpacing, result.columnPixelSpacing];
+        }
+      }
+
+      if (type === 'imagePixelModule' && result) {
+        if (result.photometricInterpretation === 'PALETTE COLOR') {
+          if (!result.redPaletteColorLookupTableDescriptor) {
+            result.redPaletteColorLookupTableDescriptor = [256, 0, 8];
+            result.greenPaletteColorLookupTableDescriptor = [256, 0, 8];
+            result.bluePaletteColorLookupTableDescriptor = [256, 0, 8];
+          }
+        }
+      }
+
+      return result;
     }
     return undefined;
   }, 10000); // high priority
-  
+
   // Add tools to cornerstoneTools
   addAllTools();
 

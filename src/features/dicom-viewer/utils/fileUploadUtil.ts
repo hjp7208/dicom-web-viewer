@@ -69,7 +69,7 @@ export const processAndMergeSeries = (
       const baseId = cornerstoneDICOMImageLoader.wadouri.fileManager.add(meta.file);
       const numFrames = meta.instance.numberOfFrames;
       if (numFrames > 1) {
-        for (let i = 0; i < numFrames; i++) {
+        for (let i = 1; i <= numFrames; i++) {
           series.imageIds.push(`${baseId}?frame=${i}`);
         }
       } else {
@@ -95,7 +95,7 @@ export const processAndMergeSeries = (
           const baseId = cornerstoneDICOMImageLoader.wadouri.fileManager.add(meta.file);
           const numFrames = meta.instance.numberOfFrames;
           if (numFrames > 1) {
-            for (let i = 0; i < numFrames; i++) {
+            for (let i = 1; i <= numFrames; i++) {
               existing.imageIds.push(`${baseId}?frame=${i}`);
             }
           } else {

@@ -68,7 +68,7 @@ export interface SeriesData {
 }
 
 export const parseDicomFiles = async (
-  files: File[], 
+  files: File[],
   onProgress?: (parsedCount: number, totalCount: number) => void
 ): Promise<SeriesData[]> => {
   let parsedCount = 0;
@@ -125,7 +125,7 @@ export const parseDicomFiles = async (
             try {
               // 환자 이름에 포함된 ^ 구분자 등은 유지하면서 인코딩 디코딩
               return decoder.decode(bytes.subarray(0, length));
-            } catch (e) {
+            } catch {
               return dataSet.string(tag) || '';
             }
           };
@@ -197,7 +197,8 @@ export const parseDicomFiles = async (
 
           finish(meta);
         } catch (error) {
-          console.error("Error parsing DICOM file:", file.name, error);
+          // Silently ignore parsing errors because users might drop entire folders
+          // containing non-DICOM files like .DS_Store, ReadMe.txt, etc.
           finish(null); // Ignore non-DICOM or corrupted files
         }
       };

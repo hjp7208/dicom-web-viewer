@@ -273,6 +273,14 @@ export const useCornerstoneViewport = ({
       if (viewport) {
          viewport.setImageIdIndex(newIdx);
          viewport.render();
+         setTimeout(() => {
+           const currentImageId = viewport.getCurrentImageId();
+           const image = cornerstone.cache.getImage(currentImageId);
+           if (image) {
+             const pixels = image.getPixelData();
+             console.log(`[Diagnostic] Frame: ${newIdx}, First 5 pixels:`, pixels?.slice(0, 5));
+           }
+         }, 100);
       }
     };
 
@@ -324,6 +332,14 @@ export const useCornerstoneViewport = ({
     if (viewport) {
       viewport.setImageIdIndex(newIndex);
       viewport.render();
+      setTimeout(() => {
+        const currentImageId = viewport.getCurrentImageId();
+        const image = cornerstone.cache.getImage(currentImageId);
+        if (image) {
+          const pixels = image.getPixelData();
+          console.log(`[Diagnostic] Slider Frame: ${newIndex}, First 5 pixels:`, pixels?.slice(0, 5));
+        }
+      }, 100);
     }
   };
 
@@ -336,6 +352,14 @@ export const useCornerstoneViewport = ({
     if (viewport) {
       viewport.setImageIdIndex(newIdx);
       viewport.render();
+      setTimeout(() => {
+        const currentImageId = viewport.getCurrentImageId();
+        const image = cornerstone.cache.getImage(currentImageId);
+        if (image) {
+          const pixels = image.getPixelData();
+          console.log(`[Diagnostic] Wheel Frame: ${newIdx}, First 5 pixels:`, pixels?.slice(0, 5));
+        }
+      }, 100);
     }
   };
 

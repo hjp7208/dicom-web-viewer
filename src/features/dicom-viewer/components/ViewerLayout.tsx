@@ -1,17 +1,15 @@
 "use client";
 
-import React, { useCallback } from 'react';
+import React from 'react';
 import SeriesSidebar from './SeriesSidebar';
 import AIResultSidebar from './AIResultSidebar';
 import Toolbar from './Toolbar';
 import DicomViewer from './DicomViewer';
 import Header from '@/components/layout/Header';
-import { useViewerStore } from '@/features/dicom-viewer/store/useViewerStore';
+
 
 export default function ViewerLayout() {
-  const { currentSliceIndex, totalSlices } = useViewerStore();
-
-
+  
   return (
     <div className="flex flex-col h-screen bg-black overflow-hidden font-sans">
       <Header />
