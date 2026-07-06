@@ -272,6 +272,7 @@ export const useCornerstoneViewport = ({
       const viewport = renderingEngine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
       if (viewport) {
          viewport.setImageIdIndex(newIdx);
+         viewport.render();
       }
     };
 
@@ -322,6 +323,7 @@ export const useCornerstoneViewport = ({
     const viewport = renderingEngine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
     if (viewport) {
       viewport.setImageIdIndex(newIndex);
+      viewport.render();
     }
   };
 
@@ -333,6 +335,7 @@ export const useCornerstoneViewport = ({
     const viewport = renderingEngine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
     if (viewport) {
       viewport.setImageIdIndex(newIdx);
+      viewport.render();
     }
   };
 

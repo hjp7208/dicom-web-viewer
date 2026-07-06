@@ -210,11 +210,14 @@ export const parseDicomFiles = async (
   const parsedResults = await Promise.all(metaPromises);
   const validMetas = parsedResults.filter((m): m is DicomFileMeta => m !== null);
 
-  // Group by SeriesUID
+  // Group by SeriesUID (and SOPInstanceUID for US modality)
   const seriesMap = new Map<string, SeriesData>();
 
   validMetas.forEach(meta => {
-    const groupKey = meta.series.seriesInstanceUid;
+    const isUS = meta.series.modality === 'US';
+    const groupKey = isUS
+      ? `${meta.series.seriesInstanceUid}_${meta.instance.sopInstanceUid}`
+      : meta.series.seriesInstanceUid;
 
     if (!seriesMap.has(groupKey)) {
       seriesMap.set(groupKey, {
