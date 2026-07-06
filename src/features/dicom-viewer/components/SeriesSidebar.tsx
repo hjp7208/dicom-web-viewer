@@ -80,9 +80,12 @@ export default function SeriesSidebar() {
     setTotalSlices(series.imageIds.length);
   };
 
-  const uniquePatients = useMemo(() => {
+  const availablePatients = useMemo(() => {
     const map = new Map<string, string>();
     loadedSeries.forEach(s => {
+      const sDate = s.study?.date || 'Unknown Date';
+      if (selectedDate && sDate !== selectedDate) return;
+      
       const id = s.patient?.id || 'Unknown ID';
       const name = s.patient?.name || 'Unknown Patient';
       if (!map.has(id)) {
@@ -90,12 +93,18 @@ export default function SeriesSidebar() {
       }
     });
     return Array.from(map.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
-  }, [loadedSeries]);
+  }, [loadedSeries, selectedDate]);
 
-  const uniqueDates = useMemo(() => {
-    const dates = new Set(loadedSeries.map(s => s.study?.date || 'Unknown Date'));
+  const availableDates = useMemo(() => {
+    const dates = new Set<string>();
+    loadedSeries.forEach(s => {
+      const pId = s.patient?.id || 'Unknown ID';
+      if (selectedPatient && pId !== selectedPatient) return;
+      
+      dates.add(s.study?.date || 'Unknown Date');
+    });
     return Array.from(dates).sort();
-  }, [loadedSeries]);
+  }, [loadedSeries, selectedPatient]);
 
   const filteredSeries = useMemo(() => {
     return loadedSeries.filter(series => {
@@ -135,7 +144,7 @@ export default function SeriesSidebar() {
           className="w-full bg-neutral-800 text-sm text-neutral-300 border border-neutral-700 rounded-md p-1.5 focus:outline-none focus:border-blue-500 transition-colors"
         >
           <option value="">All Patients</option>
-          {uniquePatients.map(p => <option key={p.id} value={p.id}>{p.name} ({p.id})</option>)}
+          {availablePatients.map(p => <option key={p.id} value={p.id}>{p.name} ({p.id})</option>)}
         </select>
         <select 
           value={selectedDate} 
@@ -143,7 +152,7 @@ export default function SeriesSidebar() {
           className="w-full bg-neutral-800 text-sm text-neutral-300 border border-neutral-700 rounded-md p-1.5 focus:outline-none focus:border-blue-500 transition-colors"
         >
           <option value="">All Dates</option>
-          {uniqueDates.map(d => <option key={d} value={d}>{d}</option>)}
+          {availableDates.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
       </div>
 
