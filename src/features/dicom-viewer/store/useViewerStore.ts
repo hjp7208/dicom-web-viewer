@@ -5,10 +5,10 @@ export interface AiResult {
   id: number;
   sliceIndex: number;
   lesion: {
-    x: string;
-    y: string;
-    width: string;
-    height: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
   };
 }
 

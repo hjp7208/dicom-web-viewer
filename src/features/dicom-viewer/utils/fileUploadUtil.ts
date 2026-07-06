@@ -121,10 +121,10 @@ export const generateMockAiResults = (totalSlices: number) => {
     id: i + 1,
     sliceIndex,
     lesion: {
-      x: `${20 + Math.random() * 50}%`,
-      y: `${20 + Math.random() * 50}%`,
-      width: `${5 + Math.random() * 15}%`,
-      height: `${5 + Math.random() * 15}%`
+      x: 0.2 + Math.random() * 0.5,
+      y: 0.2 + Math.random() * 0.5,
+      width: 0.05 + Math.random() * 0.15,
+      height: 0.05 + Math.random() * 0.15
     }
   }));
 };

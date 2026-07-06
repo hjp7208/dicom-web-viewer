@@ -14,6 +14,7 @@ interface UseCornerstoneViewportProps {
   series: SeriesData | null;
   isActive: boolean;
   onSliceChange?: (index: number) => void;
+  aiOverlayRef?: React.RefObject<HTMLDivElement>;
 }
 
 export const useCornerstoneViewport = ({
@@ -21,13 +22,61 @@ export const useCornerstoneViewport = ({
   viewportId,
   series,
   isActive,
-  onSliceChange
+  onSliceChange,
+  aiOverlayRef
 }: UseCornerstoneViewportProps) => {
   const [isReady, setIsReady] = useState(false);
   const [sliceIndex, setSliceIndex] = useState(0);
   const [zoom, setZoom] = useState(1.0);
   const [voi, setVoi] = useState<{ ww: number | string, wc: number | string }>({ ww: 'Auto', wc: 'Auto' });
-  const { activeTool, setCurrentSliceIndex } = useViewerStore();
+  const { activeTool, setCurrentSliceIndex, showAiOverlay } = useViewerStore();
+
+  const updateOverlay = () => {
+    if (!aiOverlayRef?.current) return;
+    const v = cornerstone.getRenderingEngine(renderingEngineId)?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
+    if (!v) return;
+
+    const state = useViewerStore.getState();
+    // Use the actual image index from the viewport if available, else sliceIndex state
+    const currentIdx = v.getCurrentImageIdIndex();
+    if (currentIdx === undefined) return;
+    
+    const aiResult = state.aiResults.find(r => r.sliceIndex === currentIdx);
+    
+    if (state.showAiOverlay && aiResult) {
+      const imgData = v.getImageData();
+      if (imgData) {
+        const imgWidth = imgData.dimensions[0];
+        const imgHeight = imgData.dimensions[1];
+        
+        const { x, y, width, height } = aiResult.lesion;
+        
+        const imageId = v.getCurrentImageId();
+        if (!imageId) return;
+        
+        const topLeftWorld = cornerstone.utilities.imageToWorldCoords(imageId, [x * imgWidth, y * imgHeight]);
+        const bottomRightWorld = cornerstone.utilities.imageToWorldCoords(imageId, [(x + width) * imgWidth, (y + height) * imgHeight]);
+        
+        if (!topLeftWorld || !bottomRightWorld) return;
+        
+        const topLeftCanvas = v.worldToCanvas(topLeftWorld);
+        const bottomRightCanvas = v.worldToCanvas(bottomRightWorld);
+
+        aiOverlayRef.current.style.left = `${topLeftCanvas[0]}px`;
+        aiOverlayRef.current.style.top = `${topLeftCanvas[1]}px`;
+        aiOverlayRef.current.style.width = `${bottomRightCanvas[0] - topLeftCanvas[0]}px`;
+        aiOverlayRef.current.style.height = `${bottomRightCanvas[1] - topLeftCanvas[1]}px`;
+        aiOverlayRef.current.style.display = 'block';
+      }
+    } else {
+      aiOverlayRef.current.style.display = 'none';
+    }
+  };
+
+  useEffect(() => {
+    updateOverlay();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAiOverlay, sliceIndex]);
 
   useEffect(() => {
     initCornerstone().then(() => setIsReady(true));
@@ -92,6 +141,7 @@ export const useCornerstoneViewport = ({
               }
             }
           }
+          updateOverlay();
         };
 
         updateViewportInfo();
