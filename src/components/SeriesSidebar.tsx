@@ -72,17 +72,17 @@ export default function SeriesSidebar() {
 
   if (loadedSeries.length === 0) {
     return (
-      <div className="w-64 bg-neutral-200 border-r border-neutral-300 flex flex-col h-full p-4 items-center justify-center text-neutral-500 text-sm text-center">
+      <div className="w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col h-full p-4 items-center justify-center text-neutral-400 text-sm text-center">
         DICOM 파일을 우측 캔버스에<br/>드래그 앤 드롭 하세요.
       </div>
     );
   }
 
   return (
-    <div className="w-64 bg-neutral-200 border-r border-neutral-300 flex flex-col h-full overflow-y-auto">
+    <div className="w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col h-full overflow-y-auto">
       {Object.entries(groupedSeries).map(([date, seriesList]) => (
         <div key={date} className="mb-4">
-          <div className="text-xs text-neutral-500 font-medium px-4 py-2 bg-neutral-300/50">
+          <div className="text-xs text-neutral-400 font-medium px-4 py-2 bg-neutral-800/50">
             Date: {date}
           </div>
           <div className="p-4 space-y-4">

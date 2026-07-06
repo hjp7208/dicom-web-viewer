@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useViewerStore } from '@/lib/useViewerStore';
-import { ChevronLeft, ChevronRight, ToggleLeft, ToggleRight, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 
 export default function AIResultSidebar() {
   const { showAiOverlay, toggleAiOverlay, currentSliceIndex, currentSeriesName, aiResults } = useViewerStore();
@@ -107,14 +107,29 @@ export default function AIResultSidebar() {
 
       {/* Controls & Overlay Toggle */}
       <div className="p-4 border-t border-neutral-800 shrink-0 bg-neutral-950">
-        <div className="flex items-center justify-between mb-4">
-          <button 
+        <div className="mb-4">
+          <div 
             onClick={toggleAiOverlay}
-            className="flex items-center gap-2 text-sm text-neutral-300 hover:text-white transition-colors"
+            className="inline-flex items-center gap-3 cursor-pointer select-none"
           >
-            {showAiOverlay ? <ToggleRight className="text-red-500 w-6 h-6" /> : <ToggleLeft className="text-neutral-500 w-6 h-6" />}
-            병변 오버레이
-          </button>
+            {/* Absolute Positioned Toggle (Immune to flex/transform subpixel bugs) */}
+            <div 
+              className={`relative h-5 w-9 shrink-0 rounded-full transition-colors duration-300 ease-in-out ${
+                showAiOverlay ? 'bg-red-500' : 'bg-neutral-600'
+              }`}
+            >
+              <div 
+                className="absolute top-[2px] w-4 h-4 rounded-full bg-white transition-all duration-300 ease-in-out shadow-sm"
+                style={{ left: showAiOverlay ? '18px' : '2px' }}
+              />
+            </div>
+            
+            <span className={`text-sm font-medium transition-colors duration-300 ${
+              showAiOverlay ? 'text-white' : 'text-neutral-400'
+            }`}>
+              병변 오버레이
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center justify-center gap-4 bg-neutral-900 rounded-lg p-2 border border-neutral-800">
