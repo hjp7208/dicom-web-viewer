@@ -43,6 +43,7 @@ interface ViewerState {
   setViewportSeriesMap: (viewportId: string, seriesUID: string) => void;
 
   setAiResults: (results: AiResult[]) => void;
+  resetViewer: () => void;
 }
 
 export const useViewerStore = create<ViewerState>((set) => ({
@@ -77,4 +78,13 @@ export const useViewerStore = create<ViewerState>((set) => ({
   })),
 
   setAiResults: (results) => set({ aiResults: results }),
+  resetViewer: () => set({
+    loadedSeries: [],
+    activeSeriesUID: null,
+    viewportSeriesMap: {},
+    aiResults: [],
+    currentSliceIndex: 0,
+    totalSlices: 0,
+    currentSeriesName: '',
+  }),
 }));

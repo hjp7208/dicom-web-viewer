@@ -2,12 +2,19 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useViewerStore } from '@/features/dicom-viewer/store/useViewerStore';
 
 export default function Header() {
+  const resetViewer = useViewerStore(state => state.resetViewer);
+
+  const handleLogoClick = () => {
+    resetViewer();
+  };
+
   return (
     <header className="h-16 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between px-6 shrink-0 z-10 shadow-sm">
       <div className="flex items-center gap-12">
-        <Link href="/" className="text-2xl font-bold tracking-widest text-blue-500 hover:opacity-80 transition-opacity">DICOM</Link>
+        <Link href="/" onClick={handleLogoClick} className="text-2xl font-bold tracking-widest text-blue-500 hover:opacity-80 transition-opacity">DICOM</Link>
         
         <nav className="flex items-center gap-2">
           <Link href="/" className="px-4 py-2 rounded-md bg-neutral-800 text-white font-medium text-sm transition-all shadow-sm">
