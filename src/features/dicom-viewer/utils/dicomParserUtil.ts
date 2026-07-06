@@ -116,7 +116,8 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
             }
           };
           const getInt = (tag: string) => { const s = dataSet.string(tag); return s ? parseInt(s, 10) : 0; };
-          const getFloat = (tag: string) => { const s = dataSet.string(tag); return s ? parseFloat(s) : 0; };
+          const getUint16 = (tag: string) => { return dataSet.uint16(tag) || 0; };
+          const getFloat = (tag: string, defaultVal = 0) => { const s = dataSet.string(tag); return s ? parseFloat(s) : defaultVal; };
           const getFloatArray = (tag: string) => {
             const s = dataSet.string(tag);
             return s ? s.split('\\').map(val => parseFloat(val)) : [];
@@ -166,13 +167,13 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
             instance: {
               sopInstanceUid: getStr('x00080018'),
               instanceNumber: getInt('x00200013'),
-              rows: getInt('x00280010'),
-              columns: getInt('x00280011'),
+              rows: getUint16('x00280010'),
+              columns: getUint16('x00280011'),
               pixelSpacing: getFloatArray('x00280030'),
               windowWidth: getFloat('x00281051'),
               windowLevel: getFloat('x00281050'),
-              rescaleSlope: getFloat('x00281053'),
-              rescaleIntercept: getFloat('x00281052'),
+              rescaleSlope: getFloat('x00281053', 1),
+              rescaleIntercept: getFloat('x00281052', 0),
               imageOrientation: getFloatArray('x00200037'),
               sliceLocation: getFloat('x00201041'),
               pixelDataUrl: '',
