@@ -197,9 +197,7 @@ export const parseDicomFiles = async (
 
           finish(meta);
         } catch (error) {
-          // Silently ignore parsing errors because users might drop entire folders
-          // containing non-DICOM files like .DS_Store, ReadMe.txt, etc.
-          finish(null); // Ignore non-DICOM or corrupted files
+          finish(null);
         }
       };
 

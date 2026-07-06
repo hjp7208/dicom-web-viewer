@@ -42,25 +42,25 @@ export const useCornerstoneViewport = ({
     // Use the actual image index from the viewport if available, else sliceIndex state
     const currentIdx = v.getCurrentImageIdIndex();
     if (currentIdx === undefined) return;
-    
+
     const aiResult = state.aiResults.find(r => r.sliceIndex === currentIdx);
-    
+
     if (state.showAiOverlay && aiResult) {
       const imgData = v.getImageData();
       if (imgData) {
         const imgWidth = imgData.dimensions[0];
         const imgHeight = imgData.dimensions[1];
-        
+
         const { x, y, width, height } = aiResult.lesion;
-        
+
         const imageId = v.getCurrentImageId();
         if (!imageId) return;
-        
+
         const topLeftWorld = cornerstone.utilities.imageToWorldCoords(imageId, [x * imgWidth, y * imgHeight]);
         const bottomRightWorld = cornerstone.utilities.imageToWorldCoords(imageId, [(x + width) * imgWidth, (y + height) * imgHeight]);
-        
+
         if (!topLeftWorld || !bottomRightWorld) return;
-        
+
         const topLeftCanvas = v.worldToCanvas(topLeftWorld);
         const bottomRightCanvas = v.worldToCanvas(bottomRightWorld);
 
@@ -77,7 +77,7 @@ export const useCornerstoneViewport = ({
 
   useEffect(() => {
     updateOverlay();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showAiOverlay, sliceIndex]);
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export const useCornerstoneViewport = ({
     if (!isReady || !series || series.imageIds.length === 0 || !viewerRef.current) return;
 
     let renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
-    
+
     const loadAndRender = async () => {
       try {
         if (!renderingEngine) {
@@ -156,6 +156,30 @@ export const useCornerstoneViewport = ({
             state.setCurrentSliceIndex(newIdx);
             if (onSliceChange) onSliceChange(newIdx);
           }
+          setTimeout(() => {
+            const engine = cornerstone.getRenderingEngine(renderingEngineId);
+            const vp = engine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
+            if (vp) {
+              const currentImageId = vp.getCurrentImageId();
+              const image = cornerstone.cache.getImage(currentImageId);
+              if (image) {
+                const pixels = image.getPixelData();
+                const prevPixels = (window as any)._prevPixels;
+                if (prevPixels && prevPixels.length === pixels.length) {
+                  let isIdentical = true;
+                  // Check a sample of pixels to avoid massive loop freeze, but enough to be sure
+                  for (let i = 0; i < pixels.length; i += 100) {
+                    if (prevPixels[i] !== pixels[i]) {
+                      isIdentical = false;
+                      break;
+                    }
+                  }
+                  console.log(`[Diagnostic] STACK_NEW_IMAGE Frame: ${newIdx}. Is exactly identical to previous frame? ${isIdentical}`);
+                }
+                (window as any)._prevPixels = pixels;
+              }
+            }
+          }, 100);
         };
 
         const handleCameraModified = () => updateViewportInfo();
@@ -166,7 +190,7 @@ export const useCornerstoneViewport = ({
           const rect = viewerRef.current.getBoundingClientRect();
           const canvasPos = [e.clientX - rect.left, e.clientY - rect.top] as cornerstone.Types.Point2;
           const v = cornerstone.getRenderingEngine(renderingEngineId)?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
-          
+
           if (v && v.canvasToWorld && v.getCornerstoneImage) {
             const worldPos = v.canvasToWorld(canvasPos);
             const imageId = v.getCurrentImageId();
@@ -182,7 +206,7 @@ export const useCornerstoneViewport = ({
                     let displayValue = '';
                     if (image.color) {
                       const idx = (j * image.columns + i) * 4;
-                      displayValue = `R:${pixelData[idx]} G:${pixelData[idx+1]} B:${pixelData[idx+2]}`;
+                      displayValue = `R:${pixelData[idx]} G:${pixelData[idx + 1]} B:${pixelData[idx + 2]}`;
                     } else {
                       const pixelValue = pixelData[j * image.columns + i];
                       const modality = series?.series.modality;
@@ -271,16 +295,16 @@ export const useCornerstoneViewport = ({
       const renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
       const viewport = renderingEngine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
       if (viewport) {
-         viewport.setImageIdIndex(newIdx);
-         viewport.render();
-         setTimeout(() => {
-           const currentImageId = viewport.getCurrentImageId();
-           const image = cornerstone.cache.getImage(currentImageId);
-           if (image) {
-             const pixels = image.getPixelData();
-             console.log(`[Diagnostic] Frame: ${newIdx}, First 5 pixels:`, pixels?.slice(0, 5));
-           }
-         }, 100);
+        viewport.setImageIdIndex(newIdx);
+        viewport.render();
+        setTimeout(() => {
+          const currentImageId = viewport.getCurrentImageId();
+          const image = cornerstone.cache.getImage(currentImageId);
+          if (image) {
+            const pixels = image.getPixelData();
+            console.log(`[Diagnostic] Frame: ${newIdx}, First 5 pixels:`, pixels?.slice(0, 5));
+          }
+        }, 100);
       }
     };
 
@@ -305,8 +329,8 @@ export const useCornerstoneViewport = ({
         else if (preset === 'Bone') { ww = 1500; wc = 300; }
         else if (preset === 'Brain') { ww = 80; wc = 40; }
         else if (preset === 'Abdomen') { ww = 400; wc = 40; }
-        
-        viewport.setProperties({ voiRange: { lower: wc - ww/2, upper: wc + ww/2 } });
+
+        viewport.setProperties({ voiRange: { lower: wc - ww / 2, upper: wc + ww / 2 } });
         viewport.render();
       }
     };
@@ -326,7 +350,7 @@ export const useCornerstoneViewport = ({
     if (!series) return;
     const val = parseInt(e.target.value, 10);
     const newIndex = series.imageIds.length - 1 - val;
-    
+
     const renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
     const viewport = renderingEngine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
     if (viewport) {

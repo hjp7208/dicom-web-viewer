@@ -70,8 +70,6 @@ const Thumbnail = ({ imageId, id }: { imageId: string, id: string }) => {
     };
   }, [imageId, id, isVisible]);
 
-  // pointer-events-none prevents the Cornerstone canvas from capturing wheel/scroll events,
-  // allowing the user to scroll the sidebar smoothly even when hovering over a thumbnail.
   return <div ref={containerRef} className="absolute inset-0 w-full h-full bg-black pointer-events-none" />;
 };
 

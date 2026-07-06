@@ -21,7 +21,7 @@ export default async function initCornerstone() {
     maxWebWorkers: navigator.hardwareConcurrency ? Math.min(navigator.hardwareConcurrency, 7) : 1,
   });
 
-  // Override dicomfile image loader to bypass loadImageFromNaturalizedMetadata bug
+  // Override dicomfile image loader
   cornerstone.imageLoader.registerImageLoader('dicomfile', (imageId: string) => {
     return cornerstoneDICOMImageLoader.wadouri.loadImage(imageId);
   });
@@ -30,6 +30,7 @@ export default async function initCornerstone() {
     cornerstone.metaData.addProvider(cornerstoneDICOMImageLoader.wadouri.metaData.metaDataProvider, 9999);
   }
 
+  // Custom metadata provider for local multiframe and missing metadata patching
   cornerstone.metaData.addProvider((type: string, imageId: unknown) => {
     if (type === 'instance') {
       return undefined;
@@ -48,8 +49,7 @@ export default async function initCornerstone() {
         result = cornerstone.metaData.get(type, baseImageId);
       }
 
-      // Patch imagePlaneModule for Ultrasound images that lack positional metadata
-      // This prevents "Cannot read properties of undefined (reading '0')" in worldToImageCoords
+      // Patch imagePlaneModule for images lacking positional metadata (e.g. US)
       if (type === 'imagePlaneModule' && result) {
         if (!result.imagePositionPatient) {
           result = {
@@ -67,6 +67,7 @@ export default async function initCornerstone() {
         }
       }
 
+      // Patch imagePixelModule for PALETTE COLOR length mismatch bug
       if (type === 'imagePixelModule' && result) {
         if (result.photometricInterpretation === 'PALETTE COLOR') {
           if (!result.redPaletteColorLookupTableDescriptor) {
@@ -80,7 +81,7 @@ export default async function initCornerstone() {
       return result;
     }
     return undefined;
-  }, 10000); // high priority
+  }, 10000);
 
   // Add tools to cornerstoneTools
   addAllTools();
