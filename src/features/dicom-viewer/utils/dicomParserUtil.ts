@@ -181,6 +181,7 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
             }
           };
 
+          console.log(`[DICOM Parser] File: ${file.name} | Slope: ${meta.instance.rescaleSlope} | Intercept: ${meta.instance.rescaleIntercept}`);
           resolve(meta);
         } catch (error) {
           console.error("Error parsing DICOM file:", file.name, error);

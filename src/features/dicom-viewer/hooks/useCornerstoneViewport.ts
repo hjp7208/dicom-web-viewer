@@ -185,8 +185,12 @@ export const useCornerstoneViewport = ({
                       displayValue = `R:${pixelData[idx]} G:${pixelData[idx+1]} B:${pixelData[idx+2]}`;
                     } else {
                       const pixelValue = pixelData[j * image.columns + i];
-                      const hu = Math.round(pixelValue * (image.slope || 1) + (image.intercept || 0));
-                      displayValue = `HU: ${hu}`;
+                      const fileIdx = Math.min(sliceIndex, (series?.files.length || 1) - 1);
+                      const currentInstance = series?.files[fileIdx]?.instance;
+                      const slope = image.slope ?? currentInstance?.rescaleSlope ?? 1;
+                      const intercept = image.intercept ?? currentInstance?.rescaleIntercept ?? 0;
+                      const hu = Math.round(pixelValue * slope + intercept);
+                      displayValue = `HU: ${hu} (S:${slope} I:${intercept})`;
                     }
                     pixelInfoRef.current.innerText = `X: ${i} Y: ${j} | ${displayValue}`;
                     return;
