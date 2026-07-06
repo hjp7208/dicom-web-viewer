@@ -38,14 +38,18 @@ export default function Toolbar() {
   };
 
   return (
-    <div className="flex items-center gap-2 p-2 bg-neutral-900 border-b border-neutral-800 relative z-20">
-      <div className="flex bg-neutral-800 rounded-lg p-1">
+    <div className="flex items-center gap-1 p-1.5 bg-neutral-900/70 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl relative z-20">
+      
+      {/* Core Tools */}
+      <div className="flex items-center gap-0.5">
         {tools.map(tool => (
           <button
             key={tool.id}
             onClick={() => setActiveTool(tool.id)}
-            className={`p-2 rounded-md flex items-center justify-center transition-colors ${
-              activeTool === tool.id ? 'bg-blue-600 text-white' : 'text-neutral-400 hover:text-white hover:bg-neutral-700'
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${
+              activeTool === tool.id 
+                ? 'bg-blue-600 text-white shadow-md' 
+                : 'text-neutral-400 hover:text-white hover:bg-white/10'
             }`}
             title={tool.label}
           >
@@ -54,23 +58,23 @@ export default function Toolbar() {
         ))}
       </div>
 
-      <div className="w-px h-8 bg-neutral-700 mx-2" />
+      <div className="w-px h-6 bg-white/10 mx-2" />
 
       {/* Preset Dropdown */}
-      <div className="relative">
+      <div className="relative flex items-center">
         <button 
           onClick={() => setPresetOpen(!presetOpen)}
-          className="px-3 py-2 bg-neutral-800 text-neutral-300 hover:bg-neutral-700 rounded-md text-sm font-medium transition-colors"
+          className="h-9 px-4 rounded-full flex items-center justify-center text-xs font-semibold tracking-wider transition-colors text-neutral-300 hover:text-white hover:bg-white/10"
         >
-          W/L 프리셋
+          W/L PRESET
         </button>
         {presetOpen && (
-          <div className="absolute top-full left-0 mt-1 w-32 bg-neutral-800 border border-neutral-700 rounded-md shadow-xl overflow-hidden">
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-36 bg-neutral-900/90 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl overflow-hidden py-1">
             {['Lung', 'Abdomen', 'Brain', 'Bone'].map(preset => (
               <button
                 key={preset}
                 onClick={() => handlePresetChange(preset)}
-                className="block w-full text-left px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700 hover:text-white"
+                className="block w-full text-center px-4 py-2.5 text-sm font-medium text-neutral-300 hover:bg-white/10 hover:text-white transition-colors"
               >
                 {preset}
               </button>
@@ -79,59 +83,63 @@ export default function Toolbar() {
         )}
       </div>
 
-      <div className="w-px h-8 bg-neutral-700 mx-2" />
+      <div className="w-px h-6 bg-white/10 mx-2" />
 
-      {/* Reset */}
-      <button
-        onClick={handleReset}
-        className="p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"
-        title="초기화(Reset)"
-      >
-        <RotateCcw className="w-5 h-5" />
-      </button>
-
-      {/* Layout Split */}
-      <div className="relative">
+      {/* Utilities */}
+      <div className="flex items-center gap-0.5">
+        {/* Reset */}
         <button
-          onClick={() => setLayoutOpen(!layoutOpen)}
-          className="p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"
-          title="분할 (Layout)"
+          onClick={handleReset}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 transition-all duration-200"
+          title="초기화 (Reset)"
         >
-          <LayoutGrid className="w-5 h-5" />
+          <RotateCcw className="w-5 h-5" />
         </button>
-        {layoutOpen && (
-          <div className="absolute top-full right-0 mt-1 w-24 bg-neutral-800 border border-neutral-700 rounded-md shadow-xl overflow-hidden flex flex-col">
-             <button
-                onClick={() => { setViewportLayout('1x1'); setLayoutOpen(false); }}
-                className={`px-4 py-2 text-sm text-left ${viewportLayout === '1x1' ? 'bg-blue-600/20 text-blue-400' : 'text-neutral-300 hover:bg-neutral-700'}`}
-              >
-                1x1
-              </button>
-              <button
-                onClick={() => { setViewportLayout('1x2'); setLayoutOpen(false); }}
-                className={`px-4 py-2 text-sm text-left ${viewportLayout === '1x2' ? 'bg-blue-600/20 text-blue-400' : 'text-neutral-300 hover:bg-neutral-700'}`}
-              >
-                1x2
-              </button>
-              <button
-                onClick={() => { setViewportLayout('2x2'); setLayoutOpen(false); }}
-                className={`px-4 py-2 text-sm text-left ${viewportLayout === '2x2' ? 'bg-blue-600/20 text-blue-400' : 'text-neutral-300 hover:bg-neutral-700'}`}
-              >
-                2x2
-              </button>
-          </div>
-        )}
-      </div>
 
-      {/* Anonymization Toggle */}
-      <button
-        onClick={toggleAnonymization}
-        className={`p-2 rounded-md transition-colors flex items-center gap-2 px-3 ${isAnonymized ? 'bg-amber-600/20 text-amber-500' : 'text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
-        title="환자 정보 보호 (Anonymize)"
-      >
-        {isAnonymized ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-        <span className="text-sm font-medium">{isAnonymized ? 'Masked' : 'Show Info'}</span>
-      </button>
+        {/* Layout Split Dropdown */}
+        <div className="relative flex items-center">
+          <button
+            onClick={() => setLayoutOpen(!layoutOpen)}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 transition-all duration-200"
+            title="분할 (Layout)"
+          >
+            <LayoutGrid className="w-5 h-5" />
+          </button>
+          {layoutOpen && (
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-20 bg-neutral-900/90 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl overflow-hidden py-1 flex flex-col">
+                <button
+                  onClick={() => { setViewportLayout('1x1'); setLayoutOpen(false); }}
+                  className={`px-4 py-2 text-sm text-center font-medium transition-colors ${viewportLayout === '1x1' ? 'bg-blue-600/20 text-blue-400' : 'text-neutral-300 hover:bg-white/10 hover:text-white'}`}
+                >
+                  1x1
+                </button>
+                <button
+                  onClick={() => { setViewportLayout('1x2'); setLayoutOpen(false); }}
+                  className={`px-4 py-2 text-sm text-center font-medium transition-colors ${viewportLayout === '1x2' ? 'bg-blue-600/20 text-blue-400' : 'text-neutral-300 hover:bg-white/10 hover:text-white'}`}
+                >
+                  1x2
+                </button>
+                <button
+                  onClick={() => { setViewportLayout('2x2'); setLayoutOpen(false); }}
+                  className={`px-4 py-2 text-sm text-center font-medium transition-colors ${viewportLayout === '2x2' ? 'bg-blue-600/20 text-blue-400' : 'text-neutral-300 hover:bg-white/10 hover:text-white'}`}
+                >
+                  2x2
+                </button>
+            </div>
+          )}
+        </div>
+
+        {/* Anonymization Toggle */}
+        <button
+          onClick={toggleAnonymization}
+          className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${
+            isAnonymized ? 'bg-amber-500/20 text-amber-500' : 'text-neutral-400 hover:text-white hover:bg-white/10'
+          }`}
+          title="환자 정보 마스킹 (Anonymize)"
+        >
+          {isAnonymized ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+        </button>
+      </div>
 
     </div>
   );
