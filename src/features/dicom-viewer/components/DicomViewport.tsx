@@ -18,6 +18,7 @@ export const DicomViewport = ({
 }) => {
   const viewerRef = useRef<HTMLDivElement>(null);
   const aiOverlayRef = useRef<HTMLDivElement>(null);
+  const pixelInfoRef = useRef<HTMLSpanElement>(null);
   const { isAnonymized, showAiOverlay, aiResults } = useViewerStore();
 
   const { sliceIndex, zoom, voi, handleSliderChange, handleWheel } = useCornerstoneViewport({
@@ -26,13 +27,34 @@ export const DicomViewport = ({
     series,
     isActive,
     onSliceChange,
-    aiOverlayRef
+    aiOverlayRef,
+    pixelInfoRef
   });
 
   const aiResult = useMemo(() => aiResults.find(r => r.sliceIndex === sliceIndex), [aiResults, sliceIndex]);
-  const maskStr = (str: string | number) => isAnonymized ? '***' : String(str || '');
-  const fileIndex = series ? Math.min(sliceIndex, series.files.length - 1) : 0;
+  
+  const fileIndex = series?.files.findIndex(m => m.instance.instanceNumber === sliceIndex + 1) ?? 0;
   const currentInstance = series?.files[fileIndex]?.instance;
+
+  const modality = series?.series.modality || 'UNKNOWN';
+  const columns = currentInstance?.columns || 0;
+  const rows = currentInstance?.rows || 0;
+
+  const getOrientationString = (iop: number[]) => {
+    if (!iop || iop.length !== 6) return 'Unknown';
+    const [rX, rY, rZ, cX, cY, cZ] = iop;
+    const nX = Math.abs(rY * cZ - rZ * cY);
+    const nY = Math.abs(rZ * cX - rX * cZ);
+    const nZ = Math.abs(rX * cY - rY * cX);
+    
+    if (nZ >= nX && nZ >= nY) return 'Axial';
+    if (nY >= nX && nY >= nZ) return 'Coronal';
+    if (nX >= nY && nX >= nZ) return 'Sagittal';
+    return 'Oblique';
+  };
+  
+  const orientationString = getOrientationString(currentInstance?.imageOrientation || []);
+  const maskStr = (str: string | number) => isAnonymized ? '***' : String(str || '');
 
   return (
     <div
@@ -69,6 +91,8 @@ export const DicomViewport = ({
               <span>Frame: {sliceIndex + 1} / {series.imageIds.length}</span>
               <span>Zoom: {zoom.toFixed(2)}x</span>
               <span>WW/WC: {voi.ww} / {voi.wc}</span>
+              <span>{modality} ({columns} x {rows}) - {orientationString}</span>
+              <span ref={pixelInfoRef}>X: -- Y: -- | HU: --</span>
             </div>
             <div className="flex flex-col text-right drop-shadow-md">
               <span>{maskStr(series.series.seriesDescription)}</span>

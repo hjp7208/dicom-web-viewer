@@ -15,6 +15,7 @@ interface UseCornerstoneViewportProps {
   isActive: boolean;
   onSliceChange?: (index: number) => void;
   aiOverlayRef?: React.RefObject<HTMLDivElement>;
+  pixelInfoRef?: React.RefObject<HTMLSpanElement>;
 }
 
 export const useCornerstoneViewport = ({
@@ -23,7 +24,8 @@ export const useCornerstoneViewport = ({
   series,
   isActive,
   onSliceChange,
-  aiOverlayRef
+  aiOverlayRef,
+  pixelInfoRef
 }: UseCornerstoneViewportProps) => {
   const [isReady, setIsReady] = useState(false);
   const [sliceIndex, setSliceIndex] = useState(0);
@@ -159,14 +161,61 @@ export const useCornerstoneViewport = ({
         const handleCameraModified = () => updateViewportInfo();
         const handleVoiModified = () => updateViewportInfo();
 
+        const handleMouseMove = (e: MouseEvent) => {
+          if (!pixelInfoRef?.current || !viewerRef.current) return;
+          const rect = viewerRef.current.getBoundingClientRect();
+          const canvasPos = [e.clientX - rect.left, e.clientY - rect.top] as cornerstone.Types.Point2;
+          const v = cornerstone.getRenderingEngine(renderingEngineId)?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
+          
+          if (v && v.canvasToWorld && v.getCornerstoneImage) {
+            const worldPos = v.canvasToWorld(canvasPos);
+            const imageId = v.getCurrentImageId();
+            if (imageId) {
+              const ij = cornerstone.utilities.worldToImageCoords(imageId, worldPos);
+              if (ij) {
+                const i = Math.round(ij[0]);
+                const j = Math.round(ij[1]);
+                const image = v.getCornerstoneImage();
+                if (image && image.getPixelData) {
+                  if (i >= 0 && i < image.columns && j >= 0 && j < image.rows) {
+                    const pixelData = image.getPixelData();
+                    let displayValue = '';
+                    if (image.color) {
+                      const idx = (j * image.columns + i) * 4;
+                      displayValue = `R:${pixelData[idx]} G:${pixelData[idx+1]} B:${pixelData[idx+2]}`;
+                    } else {
+                      const pixelValue = pixelData[j * image.columns + i];
+                      const hu = Math.round(pixelValue * (image.slope || 1) + (image.intercept || 0));
+                      displayValue = `HU: ${hu}`;
+                    }
+                    pixelInfoRef.current.innerText = `X: ${i} Y: ${j} | ${displayValue}`;
+                    return;
+                  }
+                }
+              }
+            }
+          }
+          pixelInfoRef.current.innerText = `X: -- Y: -- | HU: --`;
+        };
+
+        const handleMouseLeave = () => {
+          if (pixelInfoRef?.current) {
+            pixelInfoRef.current.innerText = `X: -- Y: -- | HU: --`;
+          }
+        };
+
         viewerRef.current?.addEventListener(cornerstone.Enums.Events.STACK_NEW_IMAGE, handleNewImage as EventListener);
         viewerRef.current?.addEventListener(cornerstone.Enums.Events.CAMERA_MODIFIED, handleCameraModified);
         viewerRef.current?.addEventListener(cornerstone.Enums.Events.VOI_MODIFIED, handleVoiModified);
+        viewerRef.current?.addEventListener('mousemove', handleMouseMove);
+        viewerRef.current?.addEventListener('mouseleave', handleMouseLeave);
 
         return () => {
           viewerRef.current?.removeEventListener(cornerstone.Enums.Events.STACK_NEW_IMAGE, handleNewImage as EventListener);
           viewerRef.current?.removeEventListener(cornerstone.Enums.Events.CAMERA_MODIFIED, handleCameraModified);
           viewerRef.current?.removeEventListener(cornerstone.Enums.Events.VOI_MODIFIED, handleVoiModified);
+          viewerRef.current?.removeEventListener('mousemove', handleMouseMove);
+          viewerRef.current?.removeEventListener('mouseleave', handleMouseLeave);
         };
       } catch (error) {
         console.error('Error rendering DICOM:', error);
