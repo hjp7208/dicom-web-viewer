@@ -1,128 +1,193 @@
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-const sampleItems = [
-  {
-    id: 1,
-    title: 'Study Description',
-    modality: 'x-ray',
-    tags: ['x-ray'],
-    date: '2025.04.27',
-    studyDate: '2025.04.27',
-    studyTime: '10:20',
-    accessionNumber: 'AC-1234',
-    studyId: 'ST-0001',
-    studyInstance: 'SI-001',
-    requestingPhysician: 'Dr. Kim',
-    referringPhysicianName: 'Dr. Lee',
-    institutionName: 'University Hospital',
-    patientId: 'P-1001',
-    patientName: '홍길동',
-    patientBirthDate: '1982.05.12',
-    patientSex: 'M',
-    patientOtherIds: 'ID-201',
-    notes: 'Lung opacity observed in left lower lobe. Follow-up recommended.',
-  },
-  {
-    id: 2,
-    title: 'Study Description',
-    modality: 'CT',
-    tags: ['CT'],
-    date: '2025.04.27',
-    studyDate: '2025.04.27',
-    studyTime: '11:00',
-    accessionNumber: 'AC-1235',
-    studyId: 'ST-0002',
-    studyInstance: 'SI-002',
-    requestingPhysician: 'Dr. Park',
-    referringPhysicianName: 'Dr. Choi',
-    institutionName: 'City Medical Center',
-    patientId: 'P-1002',
-    patientName: '김철수',
-    patientBirthDate: '1975.08.20',
-    patientSex: 'M',
-    patientOtherIds: 'ID-202',
-    notes: 'CT scan of abdomen. No abnormal mass noted.',
-  },
-  {
-    id: 3,
-    title: 'Study Description',
-    modality: 'CT, x-ray',
-    tags: ['CT', 'x-ray'],
-    date: '2025.04.27',
-    studyDate: '2025.04.27',
-    studyTime: '09:45',
-    accessionNumber: 'AC-1236',
-    studyId: 'ST-0003',
-    studyInstance: 'SI-003',
-    requestingPhysician: 'Dr. Han',
-    referringPhysicianName: 'Dr. Jung',
-    institutionName: 'Central Clinic',
-    patientId: 'P-1003',
-    patientName: '이영희',
-    patientBirthDate: '1990.02.14',
-    patientSex: 'F',
-    patientOtherIds: 'ID-203',
-    notes: 'Combined CT and x-ray study. Mild findings consistent with chronic bronchitis.',
-  },
-  {
-    id: 4,
-    title: 'Study Description',
-    modality: 'x-ray',
-    tags: ['x-ray'],
-    date: '2025.04.27',
-    studyDate: '2025.04.27',
-    studyTime: '12:15',
-    accessionNumber: 'AC-1237',
-    studyId: 'ST-0004',
-    studyInstance: 'SI-004',
-    requestingPhysician: 'Dr. Yoon',
-    referringPhysicianName: 'Dr. Shim',
-    institutionName: 'St. Mary Hospital',
-    patientId: 'P-1004',
-    patientName: '박영자',
-    patientBirthDate: '1968.11.05',
-    patientSex: 'F',
-    patientOtherIds: 'ID-204',
-    notes: 'Chest x-ray with no acute cardiopulmonary abnormality.',
-  },
-  {
-    id: 5,
-    title: 'Study Description',
-    modality: 'x-ray',
-    tags: ['x-ray'],
-    date: '2025.04.27',
-    studyDate: '2025.04.27',
-    studyTime: '14:30',
-    accessionNumber: 'AC-1238',
-    studyId: 'ST-0005',
-    studyInstance: 'SI-005',
-    requestingPhysician: 'Dr. Seo',
-    referringPhysicianName: 'Dr. Kim',
-    institutionName: 'North Clinic',
-    patientId: 'P-1005',
-    patientName: '최민수',
-    patientBirthDate: '1988.12.09',
-    patientSex: 'M',
-    patientOtherIds: 'ID-205',
-    notes: 'Follow-up x-ray for previous trauma. Stable appearance.',
-  },
-];
-
-const parseDate = (dateString: string) => {
-  const [year, month, day] = dateString.split('.').map(Number);
-  return new Date(year, month - 1, day);
+type StudyItem = {
+  id: number;
+  title: string;
+  modality: string;
+  tags: string[];
+  date: string;
+  studyDate: string;
+  studyTime: string;
+  accessionNumber: string;
+  studyId: string;
+  studyInstance: string;
+  requestingPhysician: string;
+  referringPhysicianName: string;
+  institutionName: string;
+  patientId: string;
+  patientName: string;
+  patientBirthDate: string;
+  patientSex: string;
+  patientOtherIds: string;
+  notes: string;
 };
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');
-  const [selectedFilters, setSelectedFilters] = useState({ xray: false, ct: false, date: false });
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
+  const [selectedFilters, setSelectedFilters] = useState({ xray: false, ct: false, cr: false, date: false });
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [activeItem, setActiveItem] = useState<typeof sampleItems[number] | null>(null);
+  const [items, setItems] = useState<StudyItem[]>([]);
+  const [activeItem, setActiveItem] = useState<StudyItem | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const toggleFilter = (filter: 'xray' | 'ct' | 'date') => {
+  type PatientInfo = {
+    id?: number;
+    patientId?: string;
+    patientName?: string;
+    sex?: string;
+    birthDate?: string;
+    age?: string;
+  };
+
+  const normalizeStudyItem = (item: Record<string, unknown>, index: number): StudyItem => {
+    const raw = item;
+    const getValue = (key: string) => raw[key as keyof typeof raw];
+
+    const id = Number(getValue('id') ?? 0);
+    const modalityValue = getValue('modality');
+    const studyDateValue = getValue('studyDate');
+    const dateValue = getValue('date');
+
+    const tagsValue = getValue('tags');
+    const tags = Array.isArray(tagsValue)
+      ? tagsValue.map(String)
+      : typeof modalityValue === 'string' && modalityValue
+      ? [modalityValue]
+      : [];
+
+    const titleValue = String(getValue('studyDescription') ?? getValue('title') ?? '').trim();
+
+    return {
+      id,
+      title: titleValue || `제목${index + 1}`,
+      modality: String(modalityValue ?? ''),
+      tags,
+      date: String(studyDateValue ?? dateValue ?? ''),
+      studyDate: String(studyDateValue ?? dateValue ?? ''),
+      studyTime: String(getValue('studyTime') ?? getValue('study_time') ?? ''),
+      accessionNumber: String(getValue('accessionNumber') ?? getValue('accession_number') ?? ''),
+      studyId: String(getValue('studyId') ?? getValue('study_instance_uid') ?? getValue('studyInstanceUid') ?? ''),
+      studyInstance: String(getValue('studyInstance') ?? getValue('study_instance') ?? ''),
+      requestingPhysician: String(getValue('requestingPhysician') ?? getValue('requesting_physician') ?? ''),
+      referringPhysicianName: String(getValue('referringPhysicianName') ?? getValue('referring_physician_name') ?? ''),
+      institutionName: String(getValue('institutionName') ?? getValue('institution_name') ?? ''),
+      patientId: String(getValue('patientId') ?? getValue('patient_id') ?? ''),
+      patientName: String(getValue('patientName') ?? getValue('patient_name') ?? ''),
+      patientBirthDate: String(getValue('patientBirthDate') ?? getValue('patient_birth_date') ?? ''),
+      patientSex: String(getValue('patientSex') ?? getValue('patient_sex') ?? ''),
+      patientOtherIds: String(getValue('patientOtherIds') ?? getValue('patient_other_ids') ?? ''),
+      notes: String(getValue('notes') ?? getValue('description') ?? getValue('studyDescription') ?? ''),
+    };
+  };
+
+  const fetchPatientInfo = async (patientId: string): Promise<PatientInfo | null> => {
+    if (!patientId) {
+      return null;
+    }
+
+    const response = await fetch(`/api/patients/${encodeURIComponent(patientId)}`, { cache: 'no-store' });
+    if (!response.ok) {
+      console.error('환자정보 조회 실패', response.statusText);
+      return null;
+    }
+
+    return (await response.json()) as PatientInfo;
+  };
+
+  const handleSelectItem = async (item: StudyItem) => {
+    setActiveItem(item);
+
+    if (!item.patientId) {
+      return;
+    }
+
+    const patientInfo = await fetchPatientInfo(item.patientId);
+    if (!patientInfo) {
+      return;
+    }
+
+    setActiveItem(prev =>
+      prev
+        ? {
+            ...prev,
+            patientName: patientInfo.patientName || prev.patientName,
+            patientSex: patientInfo.sex || prev.patientSex,
+            patientBirthDate: patientInfo.birthDate || prev.patientBirthDate,
+          }
+        : prev,
+    );
+  };
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      setLoading(true);
+      setError(null);
+
+      const params = new URLSearchParams();
+      if (debouncedQuery.trim()) {
+        params.set('keyword', debouncedQuery.trim());
+      }
+      if (selectedFilters.xray && !selectedFilters.ct && !selectedFilters.cr) {
+        params.set('modality', 'x-ray');
+      }
+      if (selectedFilters.ct && !selectedFilters.xray && !selectedFilters.cr) {
+        params.set('modality', 'CT');
+      }
+      if (selectedFilters.cr && !selectedFilters.xray && !selectedFilters.ct) {
+        params.set('modality', 'CR');
+      }
+      if (selectedFilters.date && startDate) {
+        params.set('from', startDate);
+      }
+      if (selectedFilters.date && endDate) {
+        params.set('to', endDate);
+      }
+
+      try {
+        const response = await fetch(`/api/search?${params.toString()}`, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`서버 오류: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const rawItems = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.value)
+          ? data.value
+          : Array.isArray(data?.data)
+          ? data.data
+          : undefined;
+
+        if (!rawItems) {
+          throw new Error('예상치 못한 응답 형식입니다.');
+        }
+
+        setItems(rawItems.map((item, index) => normalizeStudyItem(item, index)));
+      } catch (fetchError) {
+        setError(fetchError instanceof Error ? fetchError.message : '검색 중 오류가 발생했습니다.');
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResults();
+  }, [debouncedQuery, selectedFilters, startDate, endDate]);
+
+  const toggleFilter = (filter: 'xray' | 'ct' | 'cr' | 'date') => {
     setSelectedFilters(prev => {
       const next = { ...prev, [filter]: !prev[filter] };
       if (filter === 'date' && prev.date) {
@@ -133,39 +198,21 @@ export default function SearchPage() {
     });
   };
 
-  const results = useMemo(() => {
-    return sampleItems.filter(item => {
-      const matchesQuery =
-        item.title.toLowerCase().includes(query.toLowerCase()) ||
-        item.modality.toLowerCase().includes(query.toLowerCase()) ||
-        item.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase())) ||
-        item.patientName.toLowerCase().includes(query.toLowerCase());
+  const resetFilters = () => {
+    setSelectedFilters({ xray: false, ct: false, cr: false, date: false });
+    setStartDate('');
+    setEndDate('');
+  };
 
-      if (!matchesQuery) {
-        return false;
-      }
+  const hasActiveFilters =
+    selectedFilters.xray ||
+    selectedFilters.ct ||
+    selectedFilters.cr ||
+    selectedFilters.date ||
+    startDate !== '' ||
+    endDate !== '';
 
-      if (selectedFilters.xray && !item.tags.includes('x-ray')) {
-        return false;
-      }
-
-      if (selectedFilters.ct && !item.tags.includes('CT')) {
-        return false;
-      }
-
-      if (selectedFilters.date && startDate && endDate) {
-        const itemDate = parseDate(item.date);
-        const fromDate = new Date(startDate);
-        const toDate = new Date(endDate);
-        toDate.setHours(23, 59, 59, 999);
-        if (itemDate < fromDate || itemDate > toDate) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [query, selectedFilters, startDate, endDate]);
+  const results = useMemo(() => items, [items]);
 
   return (
     <div className="min-h-screen bg-slate-300 text-slate-900 px-6 py-6">
@@ -196,6 +243,17 @@ export default function SearchPage() {
             </button>
             <button
               type="button"
+              onClick={() => toggleFilter('cr')}
+              className={`rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition ${
+                selectedFilters.cr
+                  ? 'border-slate-900 bg-slate-900 text-white'
+                  : 'border-slate-400 bg-white text-slate-700 hover:border-slate-500'
+              }`}
+            >
+              CR
+            </button>
+            <button
+              type="button"
               onClick={() => toggleFilter('date')}
               className={`rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition ${
                 selectedFilters.date
@@ -204,6 +262,14 @@ export default function SearchPage() {
               }`}
             >
               날짜
+            </button>
+            <button
+              type="button"
+              onClick={resetFilters}
+              disabled={!hasActiveFilters}
+              className="rounded-full border border-slate-400 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-500 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-100 disabled:text-slate-400"
+            >
+              선택 초기화
             </button>
           </div>
 
@@ -225,6 +291,12 @@ export default function SearchPage() {
             </div>
           </div>
         </div>
+
+        {error && (
+          <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         {selectedFilters.date && (
           <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-slate-300 bg-white px-5 py-4 shadow-sm shadow-slate-200 md:flex-row md:items-center md:justify-between">
@@ -253,12 +325,16 @@ export default function SearchPage() {
         )}
 
         <div className="space-y-4">
-          {results.length > 0 ? (
+          {loading ? (
+            <div className="rounded-2xl border border-dashed border-slate-400 bg-white/80 px-6 py-10 text-center text-slate-600">
+              검색 중입니다...
+            </div>
+          ) : results.length > 0 ? (
             results.map(item => (
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setActiveItem(item)}
+                onClick={() => void handleSelectItem(item)}
                 className="w-full text-left"
               >
                 <div className="flex flex-col gap-3 rounded-2xl border border-slate-300 bg-white px-6 py-5 shadow-sm shadow-slate-200 transition hover:border-slate-500 hover:shadow-md">
@@ -266,7 +342,7 @@ export default function SearchPage() {
                     <div>
                       <h2 className="text-base font-semibold text-slate-900">{item.title}</h2>
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                        {item.tags.map(tag => (
+                        {(item.tags ?? []).map(tag => (
                           <span key={tag} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">
                             {tag}
                           </span>
@@ -293,7 +369,7 @@ export default function SearchPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-4xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
-              <h2 className="text-2xl font-semibold text-slate-900">Study Description</h2>
+              <h2 className="text-2xl font-semibold text-slate-900">{activeItem.title}</h2>
               <button
                 type="button"
                 onClick={() => setActiveItem(null)}
@@ -304,38 +380,60 @@ export default function SearchPage() {
             </div>
 
             <div className="px-6 py-6">
-              <div className="grid gap-4 md:grid-cols-3 md:items-start">
-                <div className="space-y-3">
-                  <div className="text-sm text-slate-500">Study Date :</div>
-                  <div className="text-sm text-slate-500">Study Time :</div>
-                  <div className="text-sm text-slate-500">Accession Number :</div>
-                  <div className="text-sm text-slate-500">Study ID :</div>
-                  <div className="text-sm text-slate-500">Study Instance :</div>
-                  <div className="text-sm text-slate-500">Requesting Physician :</div>
-                  <div className="text-sm text-slate-500">Referring Physician Name :</div>
-                  <div className="text-sm text-slate-500">Institution Name :</div>
-                  <div className="text-sm text-slate-500">Patient ID :</div>
-                  <div className="text-sm text-slate-500">Patient Name :</div>
-                  <div className="text-sm text-slate-500">Patient Birth Date :</div>
-                  <div className="text-sm text-slate-500">Patient Sex :</div>
-                  <div className="text-sm text-slate-500">Patient Other IDs :</div>
+              <dl className="space-y-4">
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <dt className="text-sm text-slate-500">Study Date :</dt>
+                  <dd className="text-sm text-slate-700">{activeItem.studyDate}</dd>
                 </div>
-                <div className="md:col-span-2 space-y-3 text-sm text-slate-700">
-                  <div>{activeItem.studyDate}</div>
-                  <div>{activeItem.studyTime}</div>
-                  <div>{activeItem.accessionNumber}</div>
-                  <div>{activeItem.studyId}</div>
-                  <div>{activeItem.studyInstance}</div>
-                  <div>{activeItem.requestingPhysician}</div>
-                  <div>{activeItem.referringPhysicianName}</div>
-                  <div>{activeItem.institutionName}</div>
-                  <div>{activeItem.patientId}</div>
-                  <div>{activeItem.patientName}</div>
-                  <div>{activeItem.patientBirthDate}</div>
-                  <div>{activeItem.patientSex}</div>
-                  <div>{activeItem.patientOtherIds}</div>
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <dt className="text-sm text-slate-500">Study Time :</dt>
+                  <dd className="text-sm text-slate-700">{activeItem.studyTime}</dd>
                 </div>
-              </div>
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <dt className="text-sm text-slate-500">Accession Number :</dt>
+                  <dd className="text-sm text-slate-700">{activeItem.accessionNumber}</dd>
+                </div>
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <dt className="text-sm text-slate-500">Study ID :</dt>
+                  <dd className="text-sm text-slate-700">{activeItem.studyId}</dd>
+                </div>
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <dt className="text-sm text-slate-500">Study Instance :</dt>
+                  <dd className="text-sm text-slate-700">{activeItem.studyInstance}</dd>
+                </div>
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <dt className="text-sm text-slate-500">Requesting Physician :</dt>
+                  <dd className="text-sm text-slate-700">{activeItem.requestingPhysician}</dd>
+                </div>
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <dt className="text-sm text-slate-500">Referring Physician Name :</dt>
+                  <dd className="text-sm text-slate-700">{activeItem.referringPhysicianName}</dd>
+                </div>
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <dt className="text-sm text-slate-500">Institution Name :</dt>
+                  <dd className="text-sm text-slate-700">{activeItem.institutionName}</dd>
+                </div>
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <dt className="text-sm text-slate-500">Patient ID :</dt>
+                  <dd className="text-sm text-slate-700">{activeItem.patientId}</dd>
+                </div>
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <dt className="text-sm text-slate-500">Patient Name :</dt>
+                  <dd className="text-sm text-slate-700">{activeItem.patientName}</dd>
+                </div>
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <dt className="text-sm text-slate-500">Patient Birth Date :</dt>
+                  <dd className="text-sm text-slate-700">{activeItem.patientBirthDate}</dd>
+                </div>
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <dt className="text-sm text-slate-500">Patient Sex :</dt>
+                  <dd className="text-sm text-slate-700">{activeItem.patientSex}</dd>
+                </div>
+                <div className="grid grid-cols-[160px_1fr] gap-4">
+                  <dt className="text-sm text-slate-500">Patient Other IDs :</dt>
+                  <dd className="text-sm text-slate-700">{activeItem.patientOtherIds}</dd>
+                </div>
+              </dl>
 
               <div className="mt-8 rounded-3xl border border-slate-200 bg-slate-100 p-5">
                 <div className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">소견/설명</div>
