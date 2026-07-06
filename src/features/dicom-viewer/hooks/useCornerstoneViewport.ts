@@ -25,6 +25,8 @@ export const useCornerstoneViewport = ({
 }: UseCornerstoneViewportProps) => {
   const [isReady, setIsReady] = useState(false);
   const [sliceIndex, setSliceIndex] = useState(0);
+  const [zoom, setZoom] = useState(1.0);
+  const [voi, setVoi] = useState<{ ww: number | string, wc: number | string }>({ ww: 'Auto', wc: 'Auto' });
   const { activeTool, setCurrentSliceIndex } = useViewerStore();
 
   useEffect(() => {
@@ -74,6 +76,26 @@ export const useCornerstoneViewport = ({
         await viewport.setStack(series.imageIds, 0);
         viewport.render();
 
+        const updateViewportInfo = () => {
+          const v = cornerstone.getRenderingEngine(renderingEngineId)?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
+          if (v) {
+            if (typeof v.getZoom === 'function') {
+              setZoom(v.getZoom());
+            }
+            if (typeof v.getProperties === 'function') {
+              const props = v.getProperties();
+              if (props.voiRange) {
+                const { lower, upper } = props.voiRange;
+                const ww = upper - lower;
+                const wc = lower + ww / 2;
+                setVoi({ ww: Math.round(ww), wc: Math.round(wc) });
+              }
+            }
+          }
+        };
+
+        updateViewportInfo();
+
         const handleNewImage = (e: CustomEvent) => {
           const newIdx = e.detail.imageIdIndex;
           setSliceIndex(newIdx);
@@ -84,10 +106,17 @@ export const useCornerstoneViewport = ({
           }
         };
 
+        const handleCameraModified = () => updateViewportInfo();
+        const handleVoiModified = () => updateViewportInfo();
+
         viewerRef.current?.addEventListener(cornerstone.Enums.Events.STACK_NEW_IMAGE, handleNewImage as EventListener);
+        viewerRef.current?.addEventListener(cornerstone.Enums.Events.CAMERA_MODIFIED, handleCameraModified);
+        viewerRef.current?.addEventListener(cornerstone.Enums.Events.VOI_MODIFIED, handleVoiModified);
 
         return () => {
           viewerRef.current?.removeEventListener(cornerstone.Enums.Events.STACK_NEW_IMAGE, handleNewImage as EventListener);
+          viewerRef.current?.removeEventListener(cornerstone.Enums.Events.CAMERA_MODIFIED, handleCameraModified);
+          viewerRef.current?.removeEventListener(cornerstone.Enums.Events.VOI_MODIFIED, handleVoiModified);
         };
       } catch (error) {
         console.error('Error rendering DICOM:', error);
@@ -202,5 +231,5 @@ export const useCornerstoneViewport = ({
     }
   };
 
-  return { isReady, sliceIndex, handleSliderChange, handleWheel };
+  return { isReady, sliceIndex, zoom, voi, handleSliderChange, handleWheel };
 };
