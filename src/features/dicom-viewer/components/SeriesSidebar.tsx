@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useRef } from 'react';
-import { useViewerStore } from '@/lib/useViewerStore';
+import { useViewerStore } from '@/features/dicom-viewer/store/useViewerStore';
+import { FolderOpen, Layers, Maximize2, MoreVertical, Search, CheckCircle2 } from 'lucide-react';
+import { SeriesData } from '@/features/dicom-viewer/utils/dicomParserUtil';
 import * as cornerstone from '@cornerstonejs/core';
-import { SeriesData } from '@/lib/dicomParserUtil';
 
 const Thumbnail = ({ imageId, id }: { imageId: string, id: string }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -86,7 +87,7 @@ export default function SeriesSidebar() {
             Date: {date}
           </div>
           <div className="p-4 space-y-4">
-            {seriesList.map((series, idx) => {
+            {(seriesList as SeriesData[]).map((series: SeriesData, idx: number) => {
               const isActive = Object.values(viewportSeriesMap).includes(series.seriesUID);
               // 대표 이미지는 시리즈의 첫번째 이미지 사용
               const repImageId = series.imageIds[0];

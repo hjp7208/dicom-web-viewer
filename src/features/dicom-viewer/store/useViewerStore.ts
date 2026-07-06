@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { SeriesData } from './dicomParserUtil';
+import { SeriesData } from '../utils/dicomParserUtil';
 
 export interface AiResult {
   id: number;

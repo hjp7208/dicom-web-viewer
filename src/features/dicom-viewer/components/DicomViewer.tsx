@@ -2,12 +2,12 @@
 
 import React, { useEffect, useRef, useState, DragEvent, useMemo } from 'react';
 import { Upload } from 'lucide-react';
-import initCornerstone from '@/lib/cornerstoneInit';
+import initCornerstone from '@/features/dicom-viewer/utils/cornerstoneInit';
 import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneTools from '@cornerstonejs/tools';
 import cornerstoneDICOMImageLoader from '@cornerstonejs/dicom-image-loader';
-import { useViewerStore } from '@/lib/useViewerStore';
-import { parseDicomFiles, SeriesData } from '@/lib/dicomParserUtil';
+import { useViewerStore } from '@/features/dicom-viewer/store/useViewerStore';
+import { parseDicomFiles, SeriesData } from '@/features/dicom-viewer/utils/dicomParserUtil';
 
 const renderingEngineId = 'dicom_viewer_engine';
 const toolGroupId = 'dicom_tool_group';

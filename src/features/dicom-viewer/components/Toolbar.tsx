@@ -6,7 +6,7 @@ import {
   RotateCcw, LayoutGrid, EyeOff, Eye,
   Activity
 } from 'lucide-react';
-import { useViewerStore } from '@/lib/useViewerStore';
+import { useViewerStore } from '@/features/dicom-viewer/store/useViewerStore';
 
 export default function Toolbar() {
   const { 

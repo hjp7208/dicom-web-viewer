@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useViewerStore } from '@/lib/useViewerStore';
+import { useViewerStore } from '@/features/dicom-viewer/store/useViewerStore';
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 
 export default function AIResultSidebar() {
