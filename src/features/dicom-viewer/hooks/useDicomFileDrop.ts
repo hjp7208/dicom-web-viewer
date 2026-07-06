@@ -27,13 +27,9 @@ export const useDicomFileDrop = () => {
     setIsDragging(false);
   };
 
-  const onDrop = async (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
+  const handleFiles = async (files: File[]) => {
     setIsParsing(true);
-    
     try {
-      const files = await getFilesFromDataTransfer(e.dataTransfer);
       if (files.length > 0) {
         const seriesList = await parseDicomFiles(files);
         
@@ -61,5 +57,18 @@ export const useDicomFileDrop = () => {
     }
   };
 
-  return { isDragging, isParsing, onDragOver, onDragLeave, onDrop };
+  const onDrop = async (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    try {
+      const files = await getFilesFromDataTransfer(e.dataTransfer);
+      await handleFiles(files);
+    } catch (err) {
+      console.error(err);
+      setIsParsing(false);
+    }
+  };
+
+  return { isDragging, isParsing, onDragOver, onDragLeave, onDrop, handleFiles };
 };

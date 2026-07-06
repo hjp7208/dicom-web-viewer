@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { Upload } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Upload, Folder, File as FileIcon } from 'lucide-react';
 import { useViewerStore } from '../store/useViewerStore';
 import { useDicomFileDrop } from '../hooks/useDicomFileDrop';
 import { DicomViewport } from './DicomViewport';
@@ -17,7 +17,17 @@ export default function DicomViewer() {
     setTotalSlices
   } = useViewerStore();
 
-  const { isDragging, isParsing, onDragOver, onDragLeave, onDrop } = useDicomFileDrop();
+  const { isDragging, isParsing, onDragOver, onDragLeave, onDrop, handleFiles } = useDicomFileDrop();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleFiles(Array.from(e.target.files));
+      e.target.value = ''; // Reset input so the same files can be selected again
+    }
+  };
 
   const handleViewportClick = (viewportId: string) => {
     setActiveViewportId(viewportId);
@@ -60,8 +70,44 @@ export default function DicomViewer() {
             {isParsing ? 'Parsing DICOM...' : 'Drag & Drop DICOM Files or Folder'}
           </h3>
           <p className="text-neutral-400 text-center mb-8 max-w-md">
-             {isParsing ? '파일을 분석 중입니다. 잠시만 기다려주세요.' : '테스트를 위해 여러 .dcm 파일 또는 폴더를 여기에 드롭하세요.'}
+             {isParsing ? '파일을 분석 중입니다. 잠시만 기다려주세요.' : '테스트를 위해 여러 .dcm 파일 또는 폴더를 여기에 드롭하거나 아래 버튼을 통해 선택하세요.'}
           </p>
+
+          {!isParsing && (
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-blue-900/20"
+              >
+                <FileIcon className="w-5 h-5" /> 파일 선택
+              </button>
+              <button 
+                onClick={() => folderInputRef.current?.click()}
+                className="flex items-center gap-2 px-5 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg font-medium transition-colors shadow-lg"
+              >
+                <Folder className="w-5 h-5" /> 폴더 선택
+              </button>
+            </div>
+          )}
+
+          <input 
+            type="file" 
+            multiple 
+            ref={fileInputRef} 
+            onChange={onFileChange} 
+            className="hidden" 
+            accept=".dcm,application/dicom" 
+          />
+          <input 
+            type="file" 
+            // @ts-expect-error - webkitdirectory is a non-standard but widely supported attribute
+            webkitdirectory="true" 
+            directory="true" 
+            multiple 
+            ref={folderInputRef} 
+            onChange={onFileChange} 
+            className="hidden" 
+          />
         </div>
       ) : (
         <div className={`flex-1 grid gap-1 p-1 bg-black ${getGridClasses()}`}>
