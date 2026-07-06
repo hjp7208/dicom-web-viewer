@@ -106,7 +106,8 @@ export const useCornerstoneViewport = ({
         engine.disableElement(viewportId);
       }
     };
-  }, [isReady, series, viewportId, activeTool, isActive, onSliceChange, setCurrentSliceIndex]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReady, series, viewportId]);
 
   // Update tool group when activeTool changes
   useEffect(() => {
