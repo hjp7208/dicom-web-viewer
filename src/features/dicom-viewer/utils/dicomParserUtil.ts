@@ -67,29 +67,43 @@ export interface SeriesData {
   imageIds: string[]; // sorted by instanceNumber, includes multi-frame ?frame=x
 }
 
-export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
+export const parseDicomFiles = async (
+  files: File[],
+  onProgress?: (parsedCount: number, totalCount: number) => void
+): Promise<SeriesData[]> => {
+  let parsedCount = 0;
+  const totalCount = files.length;
+
   const metaPromises = files.map(file => {
     return new Promise<DicomFileMeta | null>((resolve) => {
       const reader = new FileReader();
-      
+
+      const finish = (result: DicomFileMeta | null) => {
+        parsedCount++;
+        if (onProgress) {
+          onProgress(parsedCount, totalCount);
+        }
+        resolve(result);
+      };
+
       reader.onload = (e) => {
         try {
           const arrayBuffer = e.target?.result as ArrayBuffer;
           if (!arrayBuffer) {
-            resolve(null);
+            finish(null);
             return;
           }
-          
+
           const byteArray = new Uint8Array(arrayBuffer);
           const dataSet = dicomParser.parseDicom(byteArray);
-          
+
           // Only process files that have PixelData (7FE0,0010)
           // to avoid crashing on DICOMDIR, SR, PR, etc.
           if (!dataSet.elements.x7fe00010) {
-            resolve(null);
+            finish(null);
             return;
           }
-          
+
           // Character Set 처리 (한국어 인코딩 EUC-KR 적용)
           const charSetStr = dataSet.string('x00080005') || '';
           let decoder = new TextDecoder('euc-kr'); // 한국어 환경 기본값
@@ -100,36 +114,37 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
           const getStr = (tag: string) => {
             const element = dataSet.elements[tag];
             if (!element || element.length === 0) return '';
-            
+
             const bytes = dataSet.byteArray.subarray(element.dataOffset, element.dataOffset + element.length);
             let length = bytes.length;
             // DICOM 문자열 패딩(Null 또는 Space) 제거
             while (length > 0 && (bytes[length - 1] === 0x00 || bytes[length - 1] === 0x20)) {
               length--;
             }
-            
+
             try {
               // 환자 이름에 포함된 ^ 구분자 등은 유지하면서 인코딩 디코딩
               return decoder.decode(bytes.subarray(0, length));
-            } catch (e) {
+            } catch {
               return dataSet.string(tag) || '';
             }
           };
           const getInt = (tag: string) => { const s = dataSet.string(tag); return s ? parseInt(s, 10) : 0; };
-          const getFloat = (tag: string) => { const s = dataSet.string(tag); return s ? parseFloat(s) : 0; };
+          const getUint16 = (tag: string) => { return dataSet.uint16(tag) || 0; };
+          const getFloat = (tag: string, defaultVal = 0) => { const s = dataSet.string(tag); return s ? parseFloat(s) : defaultVal; };
           const getFloatArray = (tag: string) => {
             const s = dataSet.string(tag);
             return s ? s.split('\\').map(val => parseFloat(val)) : [];
           };
-          
+
           const formatDate = (val: string) => {
             if (!val || val.length < 8) return val;
-            return `${val.substring(0,4)}-${val.substring(4,6)}-${val.substring(6,8)}`;
+            return `${val.substring(0, 4)}-${val.substring(4, 6)}-${val.substring(6, 8)}`;
           };
 
           const formatTime = (val: string) => {
             if (!val || val.length < 6) return val;
-            return `${val.substring(0,2)}:${val.substring(2,4)}:${val.substring(4,6)}`;
+            return `${val.substring(0, 2)}:${val.substring(2, 4)}:${val.substring(4, 6)}`;
           };
 
           const meta: DicomFileMeta = {
@@ -166,13 +181,13 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
             instance: {
               sopInstanceUid: getStr('x00080018'),
               instanceNumber: getInt('x00200013'),
-              rows: getInt('x00280010'),
-              columns: getInt('x00280011'),
+              rows: getUint16('x00280010'),
+              columns: getUint16('x00280011'),
               pixelSpacing: getFloatArray('x00280030'),
               windowWidth: getFloat('x00281051'),
               windowLevel: getFloat('x00281050'),
-              rescaleSlope: getFloat('x00281053'),
-              rescaleIntercept: getFloat('x00281052'),
+              rescaleSlope: getFloat('x00281053', 1),
+              rescaleIntercept: getFloat('x00281052', 0),
               imageOrientation: getFloatArray('x00200037'),
               sliceLocation: getFloat('x00201041'),
               pixelDataUrl: '',
@@ -180,14 +195,13 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
             }
           };
 
-          resolve(meta);
+          finish(meta);
         } catch (error) {
-          console.error("Error parsing DICOM file:", file.name, error);
-          resolve(null); // Ignore non-DICOM or corrupted files
+          finish(null);
         }
       };
-      
-      reader.onerror = () => resolve(null);
+
+      reader.onerror = () => finish(null);
       reader.readAsArrayBuffer(file);
     });
   });
@@ -195,19 +209,18 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
   const parsedResults = await Promise.all(metaPromises);
   const validMetas = parsedResults.filter((m): m is DicomFileMeta => m !== null);
 
-  // Group by SeriesUID (or SOPInstanceUID for XR modalities)
+  // Group by SeriesUID (and SOPInstanceUID for US modality)
   const seriesMap = new Map<string, SeriesData>();
-  
+
   validMetas.forEach(meta => {
-    // For X-Ray modalities, we treat each file (instance) as a separate series
-    const isXR = ['CR', 'DX', 'XR', 'XA', 'RF'].includes(meta.series.modality);
-    const groupKey = isXR 
+    const isUS = meta.series.modality === 'US';
+    const groupKey = isUS
       ? `${meta.series.seriesInstanceUid}_${meta.instance.sopInstanceUid}`
       : meta.series.seriesInstanceUid;
 
     if (!seriesMap.has(groupKey)) {
       seriesMap.set(groupKey, {
-        seriesUID: groupKey, // Virtual SeriesUID
+        seriesUID: groupKey,
         patient: meta.patient,
         study: meta.study,
         series: meta.series,
