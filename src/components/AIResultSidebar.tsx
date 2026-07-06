@@ -108,28 +108,29 @@ export default function AIResultSidebar() {
       {/* Controls & Overlay Toggle */}
       <div className="p-4 border-t border-neutral-800 shrink-0 bg-neutral-950">
         <div className="mb-4">
-          <div 
+          <button 
+            type="button"
             onClick={toggleAiOverlay}
-            className="inline-flex items-center gap-3 cursor-pointer select-none"
+            className="inline-flex items-center gap-3 cursor-pointer select-none focus:outline-none"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
-            {/* Absolute Positioned Toggle (Immune to flex/transform subpixel bugs) */}
+            {/* Flexbox-based Toggle (Guarantees perfect vertical/horizontal alignment without subpixel offsets) */}
             <div 
-              className={`relative h-5 w-9 shrink-0 rounded-full transition-colors duration-300 ease-in-out ${
+              className={`flex items-center h-6 w-11 shrink-0 rounded-full px-0.5 transition-colors duration-300 ease-in-out ${
                 showAiOverlay ? 'bg-red-500' : 'bg-neutral-600'
               }`}
             >
               <div 
-                className="absolute top-[2px] w-4 h-4 rounded-full bg-white transition-all duration-300 ease-in-out shadow-sm"
-                style={{ left: showAiOverlay ? '18px' : '2px' }}
+                className={`w-5 h-5 rounded-full bg-white transition-transform duration-300 ease-in-out shadow-sm ${
+                  showAiOverlay ? 'translate-x-5' : 'translate-x-0'
+                }`}
               />
             </div>
             
-            <span className={`text-sm font-medium transition-colors duration-300 ${
-              showAiOverlay ? 'text-white' : 'text-neutral-400'
-            }`}>
+            <span className="text-sm font-medium text-white">
               병변 오버레이
             </span>
-          </div>
+          </button>
         </div>
 
         <div className="flex items-center justify-center gap-4 bg-neutral-900 rounded-lg p-2 border border-neutral-800">
