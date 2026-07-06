@@ -1,22 +1,41 @@
 "use client";
+import { useEffect, useState } from "react";
+import { getMonitoring } from "@/api/monitoring";
 
-const mockMonitoring = {
-    health: { app: "UP", db: "UP", s3: "DOWN" },
+interface MonitoringData {
+    status: string;
+    health: {
+        app: string;
+        db: string;
+        s3: string;
+    };
     scUpload: {
-        success: 45,
-        fail: 2,
-        total: 47,
-        successRate: 0.95,
-        lastFailReason: "S3 연결 시간 초과",
-    },
-};
+        success: number;
+        fail: number;
+        total: number;
+        successRate: number;
+        lastFailReason: string;
+    };
+}
 
 const healthLabel = (status: string) => status === "UP" ? "정상" : "오류";
 const healthColor = (status: string) =>
     status === "UP" ? "text-green-500" : "text-red-500";
 
 export default function ErrorMonitor() {
-    const { health, scUpload } = mockMonitoring;
+    const [data, setData] = useState<MonitoringData | null>(null);
+
+    useEffect(() => {
+        getMonitoring().then(setData).catch(console.error);
+    }, []);
+
+    if (!data) return (
+        <div className="bg-white rounded-2xl p-5">
+            <p className="text-sm text-gray-400">불러오는 중...</p>
+        </div>
+    );
+
+    const { health, scUpload } = data;
 
     return (
         <div className="bg-white rounded-2xl p-5">
@@ -46,19 +65,18 @@ export default function ErrorMonitor() {
                         ["실패", scUpload.fail, "text-red-500"],
                         ["성공률", `${Math.round(scUpload.successRate * 100)}%`, "text-gray-700"],
                     ].map(([label, value, color]) => (
-                        <div
-                            key={label as string}
-                            className="bg-gray-50 rounded-xl p-2 text-center"
-                        >
+                        <div key={label as string} className="bg-gray-50 rounded-xl p-2 text-center">
                             <p className="text-xs text-gray-400 mb-1">{label}</p>
                             <p className={`text-lg font-medium ${color}`}>{value}</p>
                         </div>
                     ))}
                 </div>
-                <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2">
-                    <p className="text-xs font-medium text-red-500 mb-1">마지막 실패 사유</p>
-                    <p className="text-xs text-red-500">{scUpload.lastFailReason}</p>
-                </div>
+                {scUpload.lastFailReason && (
+                    <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+                        <p className="text-xs font-medium text-red-500 mb-1">마지막 실패 사유</p>
+                        <p className="text-xs text-red-500">{scUpload.lastFailReason}</p>
+                    </div>
+                )}
             </div>
         </div>
     );

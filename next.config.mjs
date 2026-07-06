@@ -1,5 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "https://ksw1360.asia/api/:path*",
+      },
+    ];
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -9,13 +17,12 @@ const nextConfig = {
         crypto: false,
       };
     }
-    
+
     config.experiments = {
       ...config.experiments,
       asyncWebAssembly: true,
     };
-    
-    // Fixes npm packages that depend on `fs` module
+
     config.module.rules.push({
       test: /\.wasm$/,
       type: "asset/resource",

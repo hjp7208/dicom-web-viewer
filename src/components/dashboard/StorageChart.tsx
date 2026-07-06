@@ -1,5 +1,7 @@
 "use client";
+import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
+import { getStorage } from "@/api/storage";
 
 interface StorageData {
     dbMb: number;
@@ -7,8 +9,14 @@ interface StorageData {
     totalMb: number;
 }
 
-export default function StorageChart({ data }: { data: StorageData | null }) {
-    const used = data?.totalMb ?? 7200;
+export default function StorageChart() {
+    const [data, setData] = useState<StorageData | null>(null);
+
+    useEffect(() => {
+        getStorage().then(setData).catch(console.error);
+    }, []);
+
+    const used = data?.totalMb ?? 0;
     const total = 10000;
     const free = total - used;
 
