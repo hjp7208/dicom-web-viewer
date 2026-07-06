@@ -185,12 +185,12 @@ export const useCornerstoneViewport = ({
                       displayValue = `R:${pixelData[idx]} G:${pixelData[idx+1]} B:${pixelData[idx+2]}`;
                     } else {
                       const pixelValue = pixelData[j * image.columns + i];
-                      const fileIdx = Math.min(sliceIndex, (series?.files.length || 1) - 1);
-                      const currentInstance = series?.files[fileIdx]?.instance;
-                      const slope = image.slope ?? currentInstance?.rescaleSlope ?? 1;
-                      const intercept = image.intercept ?? currentInstance?.rescaleIntercept ?? 0;
-                      const hu = Math.round(pixelValue * slope + intercept);
-                      displayValue = `HU: ${hu} (S:${slope} I:${intercept})`;
+                      const modality = series?.series.modality;
+                      if (modality === 'CT') {
+                        displayValue = `HU: ${pixelValue}`;
+                      } else {
+                        displayValue = `Pixel: ${pixelValue}`;
+                      }
                     }
                     pixelInfoRef.current.innerText = `X: ${i} Y: ${j} | ${displayValue}`;
                     return;
@@ -199,12 +199,14 @@ export const useCornerstoneViewport = ({
               }
             }
           }
-          pixelInfoRef.current.innerText = `X: -- Y: -- | HU: --`;
+          const defaultLabel = series?.series.modality === 'CT' ? 'HU' : 'Pixel';
+          pixelInfoRef.current.innerText = `X: -- Y: -- | ${defaultLabel}: --`;
         };
 
         const handleMouseLeave = () => {
           if (pixelInfoRef?.current) {
-            pixelInfoRef.current.innerText = `X: -- Y: -- | HU: --`;
+            const defaultLabel = series?.series.modality === 'CT' ? 'HU' : 'Pixel';
+            pixelInfoRef.current.innerText = `X: -- Y: -- | ${defaultLabel}: --`;
           }
         };
 

@@ -92,7 +92,7 @@ export const DicomViewport = ({
               <span>Zoom: {zoom.toFixed(2)}x</span>
               <span>WW/WC: {voi.ww} / {voi.wc}</span>
               <span>{modality} ({columns} x {rows}) - {orientationString}</span>
-              <span ref={pixelInfoRef}>X: -- Y: -- | HU: --</span>
+              <span ref={pixelInfoRef}>X: -- Y: -- | {modality === 'CT' ? 'HU' : 'Pixel'}: --</span>
             </div>
             <div className="flex flex-col text-right drop-shadow-md">
               <span>{maskStr(series.series.seriesDescription)}</span>

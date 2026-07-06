@@ -71,7 +71,7 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
   const metaPromises = files.map(file => {
     return new Promise<DicomFileMeta | null>((resolve) => {
       const reader = new FileReader();
-      
+
       reader.onload = (e) => {
         try {
           const arrayBuffer = e.target?.result as ArrayBuffer;
@@ -79,17 +79,17 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
             resolve(null);
             return;
           }
-          
+
           const byteArray = new Uint8Array(arrayBuffer);
           const dataSet = dicomParser.parseDicom(byteArray);
-          
+
           // Only process files that have PixelData (7FE0,0010)
           // to avoid crashing on DICOMDIR, SR, PR, etc.
           if (!dataSet.elements.x7fe00010) {
             resolve(null);
             return;
           }
-          
+
           // Character Set 처리 (한국어 인코딩 EUC-KR 적용)
           const charSetStr = dataSet.string('x00080005') || '';
           let decoder = new TextDecoder('euc-kr'); // 한국어 환경 기본값
@@ -100,14 +100,14 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
           const getStr = (tag: string) => {
             const element = dataSet.elements[tag];
             if (!element || element.length === 0) return '';
-            
+
             const bytes = dataSet.byteArray.subarray(element.dataOffset, element.dataOffset + element.length);
             let length = bytes.length;
             // DICOM 문자열 패딩(Null 또는 Space) 제거
             while (length > 0 && (bytes[length - 1] === 0x00 || bytes[length - 1] === 0x20)) {
               length--;
             }
-            
+
             try {
               // 환자 이름에 포함된 ^ 구분자 등은 유지하면서 인코딩 디코딩
               return decoder.decode(bytes.subarray(0, length));
@@ -122,15 +122,15 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
             const s = dataSet.string(tag);
             return s ? s.split('\\').map(val => parseFloat(val)) : [];
           };
-          
+
           const formatDate = (val: string) => {
             if (!val || val.length < 8) return val;
-            return `${val.substring(0,4)}-${val.substring(4,6)}-${val.substring(6,8)}`;
+            return `${val.substring(0, 4)}-${val.substring(4, 6)}-${val.substring(6, 8)}`;
           };
 
           const formatTime = (val: string) => {
             if (!val || val.length < 6) return val;
-            return `${val.substring(0,2)}:${val.substring(2,4)}:${val.substring(4,6)}`;
+            return `${val.substring(0, 2)}:${val.substring(2, 4)}:${val.substring(4, 6)}`;
           };
 
           const meta: DicomFileMeta = {
@@ -181,14 +181,13 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
             }
           };
 
-          console.log(`[DICOM Parser] File: ${file.name} | Slope: ${meta.instance.rescaleSlope} | Intercept: ${meta.instance.rescaleIntercept}`);
           resolve(meta);
         } catch (error) {
           console.error("Error parsing DICOM file:", file.name, error);
           resolve(null); // Ignore non-DICOM or corrupted files
         }
       };
-      
+
       reader.onerror = () => resolve(null);
       reader.readAsArrayBuffer(file);
     });
@@ -199,11 +198,11 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
 
   // Group by SeriesUID (or SOPInstanceUID for XR modalities)
   const seriesMap = new Map<string, SeriesData>();
-  
+
   validMetas.forEach(meta => {
     // For X-Ray modalities, we treat each file (instance) as a separate series
     const isXR = ['CR', 'DX', 'XR', 'XA', 'RF'].includes(meta.series.modality);
-    const groupKey = isXR 
+    const groupKey = isXR
       ? `${meta.series.seriesInstanceUid}_${meta.instance.sopInstanceUid}`
       : meta.series.seriesInstanceUid;
 
