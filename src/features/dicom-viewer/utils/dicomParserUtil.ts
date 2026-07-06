@@ -67,16 +67,30 @@ export interface SeriesData {
   imageIds: string[]; // sorted by instanceNumber, includes multi-frame ?frame=x
 }
 
-export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
+export const parseDicomFiles = async (
+  files: File[], 
+  onProgress?: (parsedCount: number, totalCount: number) => void
+): Promise<SeriesData[]> => {
+  let parsedCount = 0;
+  const totalCount = files.length;
+
   const metaPromises = files.map(file => {
     return new Promise<DicomFileMeta | null>((resolve) => {
       const reader = new FileReader();
+
+      const finish = (result: DicomFileMeta | null) => {
+        parsedCount++;
+        if (onProgress) {
+          onProgress(parsedCount, totalCount);
+        }
+        resolve(result);
+      };
 
       reader.onload = (e) => {
         try {
           const arrayBuffer = e.target?.result as ArrayBuffer;
           if (!arrayBuffer) {
-            resolve(null);
+            finish(null);
             return;
           }
 
@@ -86,7 +100,7 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
           // Only process files that have PixelData (7FE0,0010)
           // to avoid crashing on DICOMDIR, SR, PR, etc.
           if (!dataSet.elements.x7fe00010) {
-            resolve(null);
+            finish(null);
             return;
           }
 
@@ -181,14 +195,14 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
             }
           };
 
-          resolve(meta);
+          finish(meta);
         } catch (error) {
           console.error("Error parsing DICOM file:", file.name, error);
-          resolve(null); // Ignore non-DICOM or corrupted files
+          finish(null); // Ignore non-DICOM or corrupted files
         }
       };
 
-      reader.onerror = () => resolve(null);
+      reader.onerror = () => finish(null);
       reader.readAsArrayBuffer(file);
     });
   });
@@ -196,19 +210,15 @@ export const parseDicomFiles = async (files: File[]): Promise<SeriesData[]> => {
   const parsedResults = await Promise.all(metaPromises);
   const validMetas = parsedResults.filter((m): m is DicomFileMeta => m !== null);
 
-  // Group by SeriesUID (or SOPInstanceUID for XR modalities)
+  // Group by SeriesUID
   const seriesMap = new Map<string, SeriesData>();
 
   validMetas.forEach(meta => {
-    // For X-Ray modalities, we treat each file (instance) as a separate series
-    const isXR = ['CR', 'DX', 'XR', 'XA', 'RF'].includes(meta.series.modality);
-    const groupKey = isXR
-      ? `${meta.series.seriesInstanceUid}_${meta.instance.sopInstanceUid}`
-      : meta.series.seriesInstanceUid;
+    const groupKey = meta.series.seriesInstanceUid;
 
     if (!seriesMap.has(groupKey)) {
       seriesMap.set(groupKey, {
-        seriesUID: groupKey, // Virtual SeriesUID
+        seriesUID: groupKey,
         patient: meta.patient,
         study: meta.study,
         series: meta.series,

@@ -7,6 +7,8 @@ import { getFilesFromDataTransfer, processAndMergeSeries, generateMockAiResults 
 export const useDicomFileDrop = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const { 
     loadedSeries, 
     setLoadedSeries,
@@ -29,9 +31,12 @@ export const useDicomFileDrop = () => {
 
   const handleFiles = async (files: File[]) => {
     setIsParsing(true);
+    setUploadProgress(0);
     try {
       if (files.length > 0) {
-        const seriesList = await parseDicomFiles(files);
+        const seriesList = await parseDicomFiles(files, (parsed, total) => {
+          setUploadProgress(Math.round((parsed / total) * 100));
+        });
         
         initCornerstone().then(() => {
           const newLoadedSeries = processAndMergeSeries(loadedSeries, seriesList);
@@ -47,13 +52,16 @@ export const useDicomFileDrop = () => {
             setAiResults(generateMockAiResults(firstSeries.imageIds.length));
           }
           setIsParsing(false);
+          setUploadProgress(0);
         });
       } else {
         setIsParsing(false);
+        setUploadProgress(0);
       }
     } catch (err) {
       console.error(err);
       setIsParsing(false);
+      setUploadProgress(0);
     }
   };
 
@@ -67,8 +75,9 @@ export const useDicomFileDrop = () => {
     } catch (err) {
       console.error(err);
       setIsParsing(false);
+      setUploadProgress(0);
     }
   };
 
-  return { isDragging, isParsing, onDragOver, onDragLeave, onDrop, handleFiles };
+  return { isDragging, isParsing, uploadProgress, onDragOver, onDragLeave, onDrop, handleFiles };
 };

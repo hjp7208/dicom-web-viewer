@@ -33,7 +33,7 @@ export const DicomViewport = ({
 
   const aiResult = useMemo(() => aiResults.find(r => r.sliceIndex === sliceIndex), [aiResults, sliceIndex]);
   
-  const fileIndex = series?.files.findIndex(m => m.instance.instanceNumber === sliceIndex + 1) ?? 0;
+  const fileIndex = Math.min(sliceIndex, (series?.files.length || 1) - 1);
   const currentInstance = series?.files[fileIndex]?.instance;
 
   const modality = series?.series.modality || 'UNKNOWN';

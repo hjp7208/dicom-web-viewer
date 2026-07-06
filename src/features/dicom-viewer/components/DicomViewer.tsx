@@ -17,7 +17,7 @@ export default function DicomViewer() {
     setTotalSlices
   } = useViewerStore();
 
-  const { isDragging, isParsing, onDragOver, onDragLeave, onDrop, handleFiles } = useDicomFileDrop();
+  const { isDragging, isParsing, uploadProgress, onDragOver, onDragLeave, onDrop, handleFiles } = useDicomFileDrop();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -72,6 +72,16 @@ export default function DicomViewer() {
           <p className="text-neutral-400 text-center mb-8 max-w-md">
              {isParsing ? '파일을 분석 중입니다. 잠시만 기다려주세요.' : '테스트를 위해 여러 .dcm 파일 또는 폴더를 여기에 드롭하거나 아래 버튼을 통해 선택하세요.'}
           </p>
+
+          {isParsing && (
+            <div className="w-full max-w-md bg-neutral-800 rounded-full h-2.5 mb-8 overflow-hidden">
+              <div 
+                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+              <div className="text-center mt-2 text-sm text-neutral-400">{uploadProgress}%</div>
+            </div>
+          )}
 
           {!isParsing && (
             <div className="flex items-center gap-4">
