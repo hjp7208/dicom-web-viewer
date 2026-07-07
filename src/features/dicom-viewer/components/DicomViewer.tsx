@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef } from 'react';
-import { Upload, Folder, File as FileIcon } from 'lucide-react';
+import { Upload, Folder, File as FileIcon, Loader2 } from 'lucide-react';
 import { useViewerStore } from '../store/useViewerStore';
 import { useDicomFileDrop } from '../hooks/useDicomFileDrop';
 import { DicomViewport } from './DicomViewport';
@@ -17,7 +17,7 @@ export default function DicomViewer() {
     setTotalSlices
   } = useViewerStore();
 
-  const { isDragging, isParsing, uploadProgress, onDragOver, onDragLeave, onDrop, handleFiles } = useDicomFileDrop();
+  const { isDragging, isParsing, isUnzipping, uploadProgress, onDragOver, onDragLeave, onDrop, handleFiles } = useDicomFileDrop();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -64,26 +64,47 @@ export default function DicomViewer() {
           onDrop={onDrop}
         >
           <div className="w-20 h-20 bg-neutral-800 rounded-full flex items-center justify-center mb-6">
-            <Upload className={`w-10 h-10 ${isDragging ? 'text-blue-500' : 'text-neutral-400'}`} />
+            {(isUnzipping && uploadProgress <= 15) ? (
+              <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+            ) : (
+              <Upload className={`w-10 h-10 ${isDragging ? 'text-blue-500' : 'text-neutral-400'} ${isUnzipping ? 'animate-bounce' : ''}`} />
+            )}
           </div>
           <h3 className="text-2xl font-semibold text-white mb-2">
-            {isParsing ? 'Parsing DICOM...' : 'Drag & Drop DICOM Files or Folder'}
+            {isUnzipping && uploadProgress <= 15 ? 'Analyzing ZIP Structure...' 
+              : (isUnzipping ? 'Extracting ZIP Files...' 
+              : (isParsing ? 'Parsing DICOM...' : 'Drag & Drop DICOM Files or Folder'))}
           </h3>
           <p className="text-neutral-400 text-center mb-8 max-w-md">
-             {isParsing ? '파일을 분석 중입니다. 잠시만 기다려주세요.' : '테스트를 위해 여러 .dcm 파일 또는 폴더를 여기에 드롭하거나 아래 버튼을 통해 선택하세요.'}
+            {isUnzipping && uploadProgress <= 15 ? '압축 파일의 구조를 분석 중입니다. 잠시만 기다려주세요...'
+              : (isUnzipping ? '압축 파일을 해제 중입니다. 파일 크기에 따라 다소 시간이 걸릴 수 있습니다.' 
+              : (isParsing ? '파일을 분석 중입니다. 잠시만 기다려주세요.' : '테스트를 위해 여러 .dcm 파일 또는 폴더를 여기에 드롭하거나 아래 버튼을 통해 선택하세요.'))}
           </p>
 
-          {isParsing && (
-            <div className="w-full max-w-md bg-neutral-800 rounded-full h-2.5 mb-8 overflow-hidden">
-              <div 
-                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out"
-                style={{ width: `${uploadProgress}%` }}
-              ></div>
-              <div className="text-center mt-2 text-sm text-neutral-400">{uploadProgress}%</div>
+          {(isParsing || isUnzipping) && (
+            <div className="w-full max-w-md mb-8">
+              <div className="w-full bg-neutral-800 rounded-full h-2.5 overflow-hidden">
+                {isUnzipping && uploadProgress <= 15 ? (
+                  <div 
+                    className="h-full bg-blue-500 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                ) : (
+                  <div 
+                    className="h-full bg-blue-600 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                )}
+              </div>
+              <div className="text-center mt-2 text-sm text-neutral-400">
+                {isUnzipping && uploadProgress <= 15 
+                  ? `Analyzing... ${uploadProgress}%` 
+                  : (isUnzipping ? `Extracting... ${uploadProgress}%` : `${uploadProgress}%`)}
+              </div>
             </div>
           )}
 
-          {!isParsing && (
+          {(!isParsing && !isUnzipping) && (
             <div className="flex items-center gap-4">
               <button 
                 onClick={() => fileInputRef.current?.click()}

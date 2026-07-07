@@ -102,7 +102,7 @@ export const parseDicomFiles = async (
           // Only process files that have PixelData (7FE0,0010)
           // to avoid crashing on DICOMDIR, SR, PR, etc.
           if (!dataSet.elements.x7fe00010) {
-            console.log('Skipping non-image DICOM file:', file.name);
+            // Suppress log for skipping non-image DICOM file
             finish(null);
             return;
           }
@@ -199,13 +199,13 @@ export const parseDicomFiles = async (
 
           finish(meta);
         } catch (error) {
-          console.error('dicomParser failed parsing file:', file.name, error);
+          // Suppress error logs for non-dicom files (e.g. ReadMe.txt, .pptx)
           finish(null);
         }
       };
 
       reader.onerror = () => {
-        console.error('FileReader error for file:', file.name);
+        // Suppress reader error logs
         finish(null);
       };
       

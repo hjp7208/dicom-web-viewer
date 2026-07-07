@@ -30,7 +30,7 @@ export const getFilesFromDataTransfer = async (dataTransfer: DataTransfer): Prom
               resolve();
             } else {
               for (const entry of entries) {
-                 await traverseFileTree(entry);
+                await traverseFileTree(entry);
               }
               readEntries();
             }
@@ -78,10 +78,10 @@ export const processAndMergeSeries = (
       }
     });
   });
-  
+
   const newMap = new Map<string, SeriesData>();
   loadedSeries.forEach(s => newMap.set(s.seriesUID, s));
-  
+
   seriesList.forEach(s => {
     if (newMap.has(s.seriesUID)) {
       const existing = newMap.get(s.seriesUID);
@@ -89,7 +89,7 @@ export const processAndMergeSeries = (
         existing.files.push(...s.files);
         // Re-sort files by instance number
         existing.files.sort((a, b) => a.instance.instanceNumber - b.instance.instanceNumber);
-        
+
         // Regenerate imageIds in order
         existing.imageIds = [];
         existing.files.forEach((meta) => {
@@ -108,7 +108,7 @@ export const processAndMergeSeries = (
       newMap.set(s.seriesUID, s);
     }
   });
-  
+
   return Array.from(newMap.values());
 };
 
@@ -130,28 +130,41 @@ export const generateMockAiResults = (totalSlices: number) => {
   }));
 };
 
-export const processZipFiles = async (files: File[]): Promise<File[]> => {
+export const processZipFiles = async (
+  files: File[],
+  onProgress?: (extractedCount: number, totalCount: number) => void
+): Promise<File[]> => {
   const extractedFiles: File[] = [];
-  
+
   for (const file of files) {
     if (file.name.toLowerCase().endsWith('.zip') || file.type === 'application/zip') {
       try {
         const { entries } = await unzip(file);
-        
+
+        const validEntries = Object.entries(entries).filter(([name, entry]) =>
+          !entry.isDirectory && !name.startsWith('__MACOSX/') && !name.split('/').some(part => part.startsWith('.'))
+        );
+
+        let extractedCount = 0;
+        const totalToExtract = validEntries.length;
+
         const promises: Promise<void>[] = [];
-        for (const [name, entry] of Object.entries(entries)) {
-          if (!entry.isDirectory && !name.startsWith('__MACOSX/') && !name.split('/').some(part => part.startsWith('.'))) {
-            promises.push(
-              entry.blob().then(blob => {
-                const fileName = name.split('/').pop() || name;
-                const extractedFile = new File([blob], fileName, {
-                  type: 'application/dicom',
-                  lastModified: file.lastModified,
-                });
-                extractedFiles.push(extractedFile);
-              })
-            );
-          }
+        for (const [name, entry] of validEntries) {
+          promises.push(
+            entry.blob().then(blob => {
+              const fileName = name.split('/').pop() || name;
+              const extractedFile = new File([blob], fileName, {
+                type: 'application/dicom',
+                lastModified: file.lastModified,
+              });
+              extractedFiles.push(extractedFile);
+
+              extractedCount++;
+              if (onProgress) {
+                onProgress(extractedCount, totalToExtract);
+              }
+            })
+          );
         }
         await Promise.all(promises);
       } catch (err) {
@@ -161,7 +174,7 @@ export const processZipFiles = async (files: File[]): Promise<File[]> => {
       extractedFiles.push(file);
     }
   }
-  
+
   return extractedFiles;
 };
 
