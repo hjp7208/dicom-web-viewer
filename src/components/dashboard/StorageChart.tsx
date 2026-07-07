@@ -4,9 +4,9 @@ import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { getStorage } from "@/api/storage";
 
 interface StorageData {
-    dbMb: number;
-    s3Mb: number;
-    totalMb: number;
+    dbGb: number;
+    s3Gb: number;
+    totalGb: number;
 }
 
 export default function StorageChart() {
@@ -16,16 +16,13 @@ export default function StorageChart() {
         getStorage().then(setData).catch(console.error);
     }, []);
 
-    const used = data?.totalMb ?? 0;
-    const total = 10000;
-    const free = total - used;
-
-    const usedGb = (used / 1024).toFixed(1);
-    const totalGb = (total / 1024).toFixed(1);
+    const usedGb = data?.totalGb ?? 0;
+    const totalCapacity = 9.8;
+    const freeGb = totalCapacity - usedGb;
 
     const chartData = [
-        { name: "사용 중", value: used },
-        { name: "여유", value: free },
+        { name: "사용 중", value: usedGb },
+        { name: "여유", value: freeGb },
     ];
 
     return (
@@ -46,9 +43,9 @@ export default function StorageChart() {
                         <Cell fill="#6C3FC5" />
                         <Cell fill="#E0E0E0" />
                     </Pie>
-                    <Tooltip formatter={(value) => [`${(Number(value) / 1024).toFixed(1)} GB`]} />
+                    <Tooltip formatter={(value) => [`${Number(value).toFixed(1)} GB`]} />
                 </PieChart>
-                <p className="text-xs text-gray-400 mt-2">{usedGb} GB / {totalGb} GB</p>
+                <p className="text-xs text-gray-400 mt-2">{usedGb.toFixed(1)} GB / {totalCapacity} GB</p>
             </div>
         </div>
     );

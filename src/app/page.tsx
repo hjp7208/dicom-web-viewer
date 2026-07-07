@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic';
 
-const ViewerLayout = dynamic(() => import('@/components/ViewerLayout'), {
+const ViewerLayout = dynamic(() => import('@/features/dicom-viewer/components/ViewerLayout'), {
   ssr: false,
 });
 

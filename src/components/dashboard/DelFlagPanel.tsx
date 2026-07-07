@@ -35,6 +35,12 @@ export default function DelFlagPanel() {
         try {
             await restoreStudy(studyId);
             setStudies((prev) => prev.filter((s) => s.id !== studyId));
+
+            // 복구 성공 후 용량 재호출
+            getDelFlagStats().then((stats: DelFlagStat[]) => {
+                const deleted = stats.find((s) => s.delFlag === true);
+                setDeletedTotalBytes(deleted?.totalBytes ?? 0);
+            }).catch(console.error);
         } catch (e) {
             console.error(e);
         }
