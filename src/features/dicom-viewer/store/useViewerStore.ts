@@ -1,14 +1,14 @@
 import { create } from 'zustand';
-import { SeriesData } from './dicomParserUtil';
+import { SeriesData } from '../utils/dicomParserUtil';
 
 export interface AiResult {
   id: number;
   sliceIndex: number;
   lesion: {
-    x: string;
-    y: string;
-    width: string;
-    height: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
   };
 }
 
@@ -20,6 +20,9 @@ interface ViewerState {
   totalSlices: number;
   currentSeriesName: string;
   viewportLayout: string; // e.g., '1x1', '1x2'
+  
+  isReportModalOpen: boolean;
+  memoText: string;
   
   loadedSeries: SeriesData[];
   activeSeriesUID: string | null;
@@ -36,6 +39,9 @@ interface ViewerState {
   setTotalSlices: (total: number) => void;
   setCurrentSeriesName: (name: string) => void;
   setViewportLayout: (layout: string) => void;
+  
+  setIsReportModalOpen: (isOpen: boolean) => void;
+  setMemoText: (text: string) => void;
 
   setLoadedSeries: (series: SeriesData[]) => void;
   setActiveSeriesUID: (uid: string | null) => void;
@@ -43,6 +49,7 @@ interface ViewerState {
   setViewportSeriesMap: (viewportId: string, seriesUID: string) => void;
 
   setAiResults: (results: AiResult[]) => void;
+  resetViewer: () => void;
 }
 
 export const useViewerStore = create<ViewerState>((set) => ({
@@ -53,6 +60,9 @@ export const useViewerStore = create<ViewerState>((set) => ({
   totalSlices: 0,
   currentSeriesName: '',
   viewportLayout: '1x1',
+  
+  isReportModalOpen: false,
+  memoText: '',
   
   loadedSeries: [],
   activeSeriesUID: null,
@@ -68,6 +78,9 @@ export const useViewerStore = create<ViewerState>((set) => ({
   setTotalSlices: (total) => set({ totalSlices: total }),
   setCurrentSeriesName: (name) => set({ currentSeriesName: name }),
   setViewportLayout: (layout) => set({ viewportLayout: layout }),
+  
+  setIsReportModalOpen: (isOpen) => set({ isReportModalOpen: isOpen }),
+  setMemoText: (text) => set({ memoText: text }),
 
   setLoadedSeries: (series) => set({ loadedSeries: series }),
   setActiveSeriesUID: (uid) => set({ activeSeriesUID: uid }),
@@ -77,4 +90,15 @@ export const useViewerStore = create<ViewerState>((set) => ({
   })),
 
   setAiResults: (results) => set({ aiResults: results }),
+  resetViewer: () => set({
+    loadedSeries: [],
+    activeSeriesUID: null,
+    viewportSeriesMap: {},
+    aiResults: [],
+    currentSliceIndex: 0,
+    totalSlices: 0,
+    currentSeriesName: '',
+    isReportModalOpen: false,
+    memoText: '',
+  }),
 }));

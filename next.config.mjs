@@ -9,20 +9,17 @@ const nextConfig = {
         crypto: false,
       };
     }
-    
+
     config.experiments = {
       ...config.experiments,
       asyncWebAssembly: true,
     };
-    
-    // Fixes npm packages that depend on `fs` module
+
     config.module.rules.push({
       test: /\.wasm$/,
       type: "asset/resource",
     });
-
     return config;
   },
 };
-
 export default nextConfig;

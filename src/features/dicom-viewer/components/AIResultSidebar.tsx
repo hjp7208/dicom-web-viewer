@@ -1,15 +1,14 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useViewerStore } from '@/lib/useViewerStore';
-import { ChevronLeft, ChevronRight, ToggleLeft, ToggleRight, FileText } from 'lucide-react';
+import { useViewerStore } from '@/features/dicom-viewer/store/useViewerStore';
+import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 
 export default function AIResultSidebar() {
-  const { showAiOverlay, toggleAiOverlay, currentSliceIndex, currentSeriesName, aiResults } = useViewerStore();
+  const { showAiOverlay, toggleAiOverlay, currentSliceIndex, currentSeriesName, aiResults, memoText, setMemoText, setIsReportModalOpen } = useViewerStore();
   
   // Local state for the AI slices navigation
   const [currentAiIdx, setCurrentAiIdx] = useState(0);
-  const [memoText, setMemoText] = useState("");
 
   const navigateToSlice = (sliceIndex: number) => {
     // Trigger custom event to tell DicomViewer to jump to slice
@@ -107,13 +106,29 @@ export default function AIResultSidebar() {
 
       {/* Controls & Overlay Toggle */}
       <div className="p-4 border-t border-neutral-800 shrink-0 bg-neutral-950">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4">
           <button 
+            type="button"
             onClick={toggleAiOverlay}
-            className="flex items-center gap-2 text-sm text-neutral-300 hover:text-white transition-colors"
+            className="inline-flex items-center gap-3 cursor-pointer select-none focus:outline-none"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
-            {showAiOverlay ? <ToggleRight className="text-red-500 w-6 h-6" /> : <ToggleLeft className="text-neutral-500 w-6 h-6" />}
-            병변 오버레이
+            {/* Flexbox-based Toggle (Guarantees perfect vertical/horizontal alignment without subpixel offsets) */}
+            <div 
+              className={`flex items-center h-6 w-11 shrink-0 rounded-full px-0.5 transition-colors duration-300 ease-in-out ${
+                showAiOverlay ? 'bg-red-500' : 'bg-neutral-600'
+              }`}
+            >
+              <div 
+                className={`w-5 h-5 rounded-full bg-white transition-transform duration-300 ease-in-out shadow-sm ${
+                  showAiOverlay ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </div>
+            
+            <span className="text-sm font-medium text-white">
+              병변 오버레이
+            </span>
           </button>
         </div>
 
@@ -169,7 +184,10 @@ export default function AIResultSidebar() {
           placeholder="여기에 소견을 입력하세요. '@' 입력 시 현재 시리즈/슬라이스 번호가 자동 태깅됩니다."
           className="flex-1 w-full bg-white/50 border border-black/10 rounded-md p-3 resize-none focus:outline-none focus:bg-white transition-colors"
         />
-        <button className="mt-3 w-full bg-neutral-800 hover:bg-neutral-900 text-white py-2 rounded-md font-medium transition-colors text-sm">
+        <button 
+          onClick={() => setIsReportModalOpen(true)}
+          className="mt-3 w-full bg-neutral-800 hover:bg-neutral-900 text-white py-2 rounded-md font-medium transition-colors text-sm"
+        >
           판독 소견서 작성 완료
         </button>
       </div>

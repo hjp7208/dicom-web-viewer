@@ -14,10 +14,13 @@
     "@cornerstonejs/tools": "^5.0.13",
     "dcmjs": "^0.52.0",
     "dicom-parser": "^1.8.21",
+    "fflate": "^0.8.3",
     "lucide-react": "^1.21.0",
     "next": "14.2.35",
     "react": "^18",
     "react-dom": "^18",
+    "recharts": "^3.9.2",
+    "unzipit": "^2.0.3",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
