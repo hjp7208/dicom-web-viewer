@@ -64,7 +64,7 @@ export default function SearchPage() {
 
     return {
       id,
-      title: titleValue || `제목${index + 1}`,
+      title: titleValue || `의료영상${index + 1}`,
       modality: String(modalityValue ?? ''),
       tags,
       date: String(studyDateValue ?? dateValue ?? ''),
@@ -97,6 +97,38 @@ export default function SearchPage() {
     }
 
     return (await response.json()) as PatientInfo;
+  };
+
+  const enrichItemsWithPatientInfo = async (studyItems: StudyItem[]): Promise<StudyItem[]> => {
+    const patientIds = [...new Set(studyItems.map(item => item.patientId).filter(Boolean))];
+    if (patientIds.length === 0) {
+      return studyItems;
+    }
+
+    const patientInfoEntries = await Promise.all(
+      patientIds.map(async patientId => {
+        const info = await fetchPatientInfo(patientId);
+        return [patientId, info] as const;
+      }),
+    );
+
+    const patientInfoMap = new Map(
+      patientInfoEntries.filter((entry): entry is [string, PatientInfo] => entry[1] !== null),
+    );
+
+    return studyItems.map(item => {
+      const patientInfo = patientInfoMap.get(item.patientId);
+      if (!patientInfo) {
+        return item;
+      }
+
+      return {
+        ...item,
+        patientName: patientInfo.patientName || item.patientName,
+        patientSex: patientInfo.sex || item.patientSex,
+        patientBirthDate: patientInfo.birthDate || item.patientBirthDate,
+      };
+    });
   };
 
   const handleSelectItem = async (item: StudyItem) => {
@@ -137,9 +169,6 @@ export default function SearchPage() {
       setError(null);
 
       const params = new URLSearchParams();
-      if (debouncedQuery.trim()) {
-        params.set('keyword', debouncedQuery.trim());
-      }
       if (selectedFilters.xray && !selectedFilters.ct && !selectedFilters.cr) {
         params.set('modality', 'x-ray');
       }
@@ -175,7 +204,9 @@ export default function SearchPage() {
           throw new Error('예상치 못한 응답 형식입니다.');
         }
 
-        setItems(rawItems.map((item, index) => normalizeStudyItem(item, index)));
+        const normalizedItems = rawItems.map((item, index) => normalizeStudyItem(item, index));
+        const enrichedItems = await enrichItemsWithPatientInfo(normalizedItems);
+        setItems(enrichedItems);
       } catch (fetchError) {
         setError(fetchError instanceof Error ? fetchError.message : '검색 중 오류가 발생했습니다.');
         setItems([]);
@@ -185,7 +216,7 @@ export default function SearchPage() {
     };
 
     fetchResults();
-  }, [debouncedQuery, selectedFilters, startDate, endDate]);
+  }, [selectedFilters, startDate, endDate]);
 
   const toggleFilter = (filter: 'xray' | 'ct' | 'cr' | 'date') => {
     setSelectedFilters(prev => {
@@ -212,7 +243,14 @@ export default function SearchPage() {
     startDate !== '' ||
     endDate !== '';
 
-  const results = useMemo(() => items, [items]);
+  const results = useMemo(() => {
+    const queryTerm = debouncedQuery.trim().toLowerCase();
+    if (!queryTerm) {
+      return items;
+    }
+
+    return items.filter(item => item.patientName.toLowerCase().includes(queryTerm));
+  }, [items, debouncedQuery]);
 
   return (
     <div className="min-h-screen bg-slate-300 text-slate-900 px-6 py-6">
@@ -359,7 +397,7 @@ export default function SearchPage() {
             ))
           ) : (
             <div className="rounded-2xl border border-dashed border-slate-400 bg-white/80 px-6 py-10 text-center text-slate-600">
-              검색어를 입력하면 결과가 표시됩니다.
+              검색 결과가 없습니다.
             </div>
           )}
         </div>
