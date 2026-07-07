@@ -79,11 +79,13 @@ ${memoText || "작성된 소견 메모가 없습니다."}
 
   const handleErmSubmit = () => {
     alert("ERM에 담당의의 소견서를 첨가했습니다.");
+    setIsReportModalOpen(false);
   };
 
   const handleResearchDbSubmit = () => {
     const studyId = activeSeries?.study.id || "Unknown";
     alert(`연구 DB에 소견을 제출했습니다. (Study ID: ${studyId})`);
+    setIsReportModalOpen(false);
   };
 
   return (
@@ -230,23 +232,29 @@ ${memoText || "작성된 소견 메모가 없습니다."}
               취소
             </button>
             
-            {/* Checked 시 나타나는 액션 버튼들 */}
-            {isReviewed && (
-              <>
-                <button 
-                  onClick={handleResearchDbSubmit}
-                  className="px-6 py-2.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg font-medium transition-colors shadow-sm min-w-[160px]"
-                >
-                  연구 DB에 소견 제출
-                </button>
-                <button 
-                  onClick={handleErmSubmit}
-                  className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-medium transition-colors shadow-sm min-w-[120px]"
-                >
-                  ERM에 제출
-                </button>
-              </>
-            )}
+            {/* 액션 버튼들 (체크 여부에 따라 활성화/비활성화) */}
+            <button 
+              onClick={handleResearchDbSubmit}
+              disabled={!isReviewed}
+              className={`px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm min-w-[160px] ${
+                isReviewed 
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
+                  : 'bg-indigo-300 text-white/70 cursor-not-allowed'
+              }`}
+            >
+              연구 DB에 소견 제출
+            </button>
+            <button 
+              onClick={handleErmSubmit}
+              disabled={!isReviewed}
+              className={`px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm min-w-[120px] ${
+                isReviewed 
+                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                  : 'bg-blue-300 text-white/70 cursor-not-allowed'
+              }`}
+            >
+              ERM에 제출
+            </button>
           </div>
         </div>
 
