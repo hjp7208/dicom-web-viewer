@@ -23,7 +23,7 @@ export default function Header() {
           <Link href="/search" className="px-4 py-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800/50 font-medium text-sm transition-all">
             검색
           </Link>
-          <Link href="/dashboard" className="px-4 py-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800/50 font-medium text-sm transition-all">
+          <Link href="/api/admin/dashboard" className="px-4 py-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800/50 font-medium text-sm transition-all">
             대시보드
           </Link>
         </nav>
