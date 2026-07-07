@@ -106,7 +106,7 @@ export default function DicomViewer() {
             ref={fileInputRef} 
             onChange={onFileChange} 
             className="hidden" 
-            accept=".dcm,application/dicom" 
+            accept=".dcm,application/dicom,.zip,application/zip" 
           />
           <input 
             type="file" 

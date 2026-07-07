@@ -2,15 +2,15 @@ import { useState, DragEvent } from 'react';
 import { useViewerStore } from '../store/useViewerStore';
 import { parseDicomFiles } from '../utils/dicomParserUtil';
 import initCornerstone from '../utils/cornerstoneInit';
-import { getFilesFromDataTransfer, processAndMergeSeries, generateMockAiResults } from '../utils/fileUploadUtil';
+import { getFilesFromDataTransfer, processAndMergeSeries, generateMockAiResults, processZipFiles } from '../utils/fileUploadUtil';
 
 export const useDicomFileDrop = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const { 
-    loadedSeries, 
+  const {
+    loadedSeries,
     setLoadedSeries,
     activeViewportId,
     setViewportSeriesMap,
@@ -34,20 +34,26 @@ export const useDicomFileDrop = () => {
     setUploadProgress(0);
     try {
       if (files.length > 0) {
-        const seriesList = await parseDicomFiles(files, (parsed, total) => {
+        const processedFiles = await processZipFiles(files);
+        if (processedFiles.length === 0) {
+          setIsParsing(false);
+          return;
+        }
+
+        const seriesList = await parseDicomFiles(processedFiles, (parsed, total) => {
           setUploadProgress(Math.round((parsed / total) * 100));
         });
-        
+
         initCornerstone().then(() => {
           const newLoadedSeries = processAndMergeSeries(loadedSeries, seriesList);
           setLoadedSeries(newLoadedSeries);
-          
+
           if (seriesList.length > 0) {
             const firstSeries = seriesList[0];
             setViewportSeriesMap(activeViewportId, firstSeries.seriesUID);
             setCurrentSeriesName(firstSeries.series.seriesDescription);
             setTotalSlices(firstSeries.imageIds.length);
-            
+
             // Generate Random AI Results for the first series
             setAiResults(generateMockAiResults(firstSeries.imageIds.length));
           }
@@ -68,7 +74,7 @@ export const useDicomFileDrop = () => {
   const onDrop = async (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     try {
       const files = await getFilesFromDataTransfer(e.dataTransfer);
       await handleFiles(files);

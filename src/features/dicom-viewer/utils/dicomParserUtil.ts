@@ -73,9 +73,10 @@ export const parseDicomFiles = async (
 ): Promise<SeriesData[]> => {
   let parsedCount = 0;
   const totalCount = files.length;
+  console.log('parseDicomFiles called with', files.length, 'files');
 
-  const metaPromises = files.map(file => {
-    return new Promise<DicomFileMeta | null>((resolve) => {
+  const processFile = (file: File): Promise<DicomFileMeta | null> => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
 
       const finish = (result: DicomFileMeta | null) => {
@@ -90,6 +91,7 @@ export const parseDicomFiles = async (
         try {
           const arrayBuffer = e.target?.result as ArrayBuffer;
           if (!arrayBuffer) {
+            console.log('Empty arrayBuffer for file:', file.name);
             finish(null);
             return;
           }
@@ -100,6 +102,7 @@ export const parseDicomFiles = async (
           // Only process files that have PixelData (7FE0,0010)
           // to avoid crashing on DICOMDIR, SR, PR, etc.
           if (!dataSet.elements.x7fe00010) {
+            console.log('Skipping non-image DICOM file:', file.name);
             finish(null);
             return;
           }
@@ -123,7 +126,6 @@ export const parseDicomFiles = async (
             }
 
             try {
-              // 환자 이름에 포함된 ^ 구분자 등은 유지하면서 인코딩 디코딩
               return decoder.decode(bytes.subarray(0, length));
             } catch {
               return dataSet.string(tag) || '';
@@ -197,17 +199,36 @@ export const parseDicomFiles = async (
 
           finish(meta);
         } catch (error) {
+          console.error('dicomParser failed parsing file:', file.name, error);
           finish(null);
         }
       };
 
-      reader.onerror = () => finish(null);
+      reader.onerror = () => {
+        console.error('FileReader error for file:', file.name);
+        finish(null);
+      };
+      
+      // Removed the 1MB slice optimization. 
+      // dicomParser strict EOF checks cause silent parsing failures on truncated files.
+      // Batching 50 files concurrently is sufficient to prevent memory crashes.
       reader.readAsArrayBuffer(file);
     });
-  });
+  };
 
-  const parsedResults = await Promise.all(metaPromises);
+  const parsedResults: (DicomFileMeta | null)[] = [];
+  
+  // Memory Optimization: Process files in batches to prevent Memory OOM (Out Of Memory)
+  const BATCH_SIZE = 50;
+  for (let i = 0; i < files.length; i += BATCH_SIZE) {
+    const batch = files.slice(i, i + BATCH_SIZE);
+    const batchPromises = batch.map(file => processFile(file));
+    const batchResults = await Promise.all(batchPromises);
+    parsedResults.push(...batchResults);
+  }
+
   const validMetas = parsedResults.filter((m): m is DicomFileMeta => m !== null);
+  console.log('Valid DICOM metas parsed:', validMetas.length);
 
   // Group by SeriesUID (and SOPInstanceUID for US modality)
   const seriesMap = new Map<string, SeriesData>();
@@ -233,6 +254,8 @@ export const parseDicomFiles = async (
 
   // Sort files within each series by instance number
   const seriesList = Array.from(seriesMap.values());
+  console.log('Grouped into', seriesList.length, 'series');
+  
   seriesList.forEach(series => {
     series.files.sort((a, b) => a.instance.instanceNumber - b.instance.instanceNumber);
   });

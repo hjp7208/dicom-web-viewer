@@ -1,5 +1,6 @@
 import cornerstoneDICOMImageLoader from '@cornerstonejs/dicom-image-loader';
 import { SeriesData } from './dicomParserUtil';
+import { unzip } from 'unzipit';
 
 export const getFilesFromDataTransfer = async (dataTransfer: DataTransfer): Promise<File[]> => {
   const files: File[] = [];
@@ -128,3 +129,39 @@ export const generateMockAiResults = (totalSlices: number) => {
     }
   }));
 };
+
+export const processZipFiles = async (files: File[]): Promise<File[]> => {
+  const extractedFiles: File[] = [];
+  
+  for (const file of files) {
+    if (file.name.toLowerCase().endsWith('.zip') || file.type === 'application/zip') {
+      try {
+        const { entries } = await unzip(file);
+        
+        const promises: Promise<void>[] = [];
+        for (const [name, entry] of Object.entries(entries)) {
+          if (!entry.isDirectory && !name.startsWith('__MACOSX/') && !name.split('/').some(part => part.startsWith('.'))) {
+            promises.push(
+              entry.blob().then(blob => {
+                const fileName = name.split('/').pop() || name;
+                const extractedFile = new File([blob], fileName, {
+                  type: 'application/dicom',
+                  lastModified: file.lastModified,
+                });
+                extractedFiles.push(extractedFile);
+              })
+            );
+          }
+        }
+        await Promise.all(promises);
+      } catch (err) {
+        console.error('Error extracting zip file:', file.name, err);
+      }
+    } else {
+      extractedFiles.push(file);
+    }
+  }
+  
+  return extractedFiles;
+};
+
