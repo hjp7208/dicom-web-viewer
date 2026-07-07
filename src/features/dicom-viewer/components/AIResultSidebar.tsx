@@ -49,7 +49,7 @@ export default function AIResultSidebar() {
 
   const insertContextTag = () => {
     const tag = `[${currentSeriesName || 'Series 1'} - Slice: ${currentSliceIndex + 1}]`;
-    setMemoText(prev => prev + (prev.length > 0 ? '\n' : '') + tag + ' ');
+    setMemoText(memoText + (memoText.length > 0 ? '\n' : '') + tag + ' ');
   };
 
   // Allow auto-tag by pressing '@' in text area (basic implementation)
