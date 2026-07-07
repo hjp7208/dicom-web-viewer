@@ -5,11 +5,10 @@ import { useViewerStore } from '@/features/dicom-viewer/store/useViewerStore';
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 
 export default function AIResultSidebar() {
-  const { showAiOverlay, toggleAiOverlay, currentSliceIndex, currentSeriesName, aiResults } = useViewerStore();
+  const { showAiOverlay, toggleAiOverlay, currentSliceIndex, currentSeriesName, aiResults, memoText, setMemoText, setIsReportModalOpen } = useViewerStore();
   
   // Local state for the AI slices navigation
   const [currentAiIdx, setCurrentAiIdx] = useState(0);
-  const [memoText, setMemoText] = useState("");
 
   const navigateToSlice = (sliceIndex: number) => {
     // Trigger custom event to tell DicomViewer to jump to slice
@@ -50,7 +49,7 @@ export default function AIResultSidebar() {
 
   const insertContextTag = () => {
     const tag = `[${currentSeriesName || 'Series 1'} - Slice: ${currentSliceIndex + 1}]`;
-    setMemoText(prev => prev + (prev.length > 0 ? '\n' : '') + tag + ' ');
+    setMemoText(memoText + (memoText.length > 0 ? '\n' : '') + tag + ' ');
   };
 
   // Allow auto-tag by pressing '@' in text area (basic implementation)
@@ -185,7 +184,10 @@ export default function AIResultSidebar() {
           placeholder="여기에 소견을 입력하세요. '@' 입력 시 현재 시리즈/슬라이스 번호가 자동 태깅됩니다."
           className="flex-1 w-full bg-white/50 border border-black/10 rounded-md p-3 resize-none focus:outline-none focus:bg-white transition-colors"
         />
-        <button className="mt-3 w-full bg-neutral-800 hover:bg-neutral-900 text-white py-2 rounded-md font-medium transition-colors text-sm">
+        <button 
+          onClick={() => setIsReportModalOpen(true)}
+          className="mt-3 w-full bg-neutral-800 hover:bg-neutral-900 text-white py-2 rounded-md font-medium transition-colors text-sm"
+        >
           판독 소견서 작성 완료
         </button>
       </div>

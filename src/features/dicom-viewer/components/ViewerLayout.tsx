@@ -6,7 +6,7 @@ import AIResultSidebar from './AIResultSidebar';
 import Toolbar from './Toolbar';
 import DicomViewer from './DicomViewer';
 import Header from '@/components/layout/Header';
-
+import ReportModal from './ReportModal';
 
 export default function ViewerLayout() {
   
@@ -34,6 +34,9 @@ export default function ViewerLayout() {
         {/* Right Sidebar */}
         <AIResultSidebar />
       </div>
+
+      {/* Report Modal */}
+      <ReportModal />
     </div>
   );
 }
