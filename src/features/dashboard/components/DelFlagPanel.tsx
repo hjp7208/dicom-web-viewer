@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import DelFlagCard from "./DelFlagCard";
-import { getDelFlag, getDelFlagStats, restoreStudy } from "@/api/delflag";
+import { getDelFlag, getDelFlagStats, restoreStudy } from "@/features/dashboard/api/delflag";
 
 interface DelFlagItem {
     id: number;

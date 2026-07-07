@@ -1,11 +1,11 @@
-import StorageChart from "@/components/dashboard/StorageChart";
-import DelFlagPanel from "@/components/dashboard/DelFlagPanel";
-import ErrorMonitor from "@/components/dashboard/ErrorMonitor";
+import StorageChart from "@/features/dashboard/components/StorageChart";
+import DelFlagPanel from "@/features/dashboard/components/DelFlagPanel";
+import ErrorMonitor from "@/features/dashboard/components/ErrorMonitor";
 
 export default function DashboardPage() {
     return (
-        <div className="flex gap-8 p-10 bg-gray-100 items-stretch justify-center">
-            <div className="flex flex-col gap-8 w-80 shrink-0">
+        <div className="flex gap-4 p-10 bg-gray-100 min-h-screen items-stretch justify-center">
+            <div className="flex flex-col gap-4 w-80 shrink-0">
                 <StorageChart />
                 <ErrorMonitor />
             </div>

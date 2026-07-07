@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getMonitoring } from "@/api/monitoring";
+import { getMonitoring } from "@/features/dashboard/api/monitoring";
 
 interface MonitoringData {
     status: string;

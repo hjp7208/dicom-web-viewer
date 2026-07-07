@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
-import { getStorage } from "@/api/storage";
+import { getStorage } from "@/features/dashboard/api/storage";
 
 interface StorageData {
     dbGb: number;
