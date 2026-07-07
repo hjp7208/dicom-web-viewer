@@ -9,7 +9,8 @@ export default function ReportModal() {
     isReportModalOpen, 
     setIsReportModalOpen, 
     loadedSeries, 
-    activeSeriesUID, 
+    activeViewportId,
+    viewportSeriesMap,
     aiResults,
     memoText
   } = useViewerStore();
@@ -20,7 +21,8 @@ export default function ReportModal() {
   const [isReviewed, setIsReviewed] = useState(false);
 
   // Active Series 데이터 가져오기
-  const activeSeries = loadedSeries.find(s => s.seriesUID === activeSeriesUID);
+  const currentSeriesUID = viewportSeriesMap[activeViewportId];
+  const activeSeries = loadedSeries.find(s => s.seriesUID === currentSeriesUID);
   
   // 환자/검사 메타데이터
   const metadata = {
