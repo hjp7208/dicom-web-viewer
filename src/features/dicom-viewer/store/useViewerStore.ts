@@ -21,6 +21,9 @@ interface ViewerState {
   currentSeriesName: string;
   viewportLayout: string; // e.g., '1x1', '1x2'
   
+  isReportModalOpen: boolean;
+  memoText: string;
+  
   loadedSeries: SeriesData[];
   activeSeriesUID: string | null;
   activeViewportId: string; // ID of the viewport currently receiving actions
@@ -36,6 +39,9 @@ interface ViewerState {
   setTotalSlices: (total: number) => void;
   setCurrentSeriesName: (name: string) => void;
   setViewportLayout: (layout: string) => void;
+  
+  setIsReportModalOpen: (isOpen: boolean) => void;
+  setMemoText: (text: string) => void;
 
   setLoadedSeries: (series: SeriesData[]) => void;
   setActiveSeriesUID: (uid: string | null) => void;
@@ -55,6 +61,9 @@ export const useViewerStore = create<ViewerState>((set) => ({
   currentSeriesName: '',
   viewportLayout: '1x1',
   
+  isReportModalOpen: false,
+  memoText: '',
+  
   loadedSeries: [],
   activeSeriesUID: null,
   activeViewportId: 'dicom_viewport_0',
@@ -69,6 +78,9 @@ export const useViewerStore = create<ViewerState>((set) => ({
   setTotalSlices: (total) => set({ totalSlices: total }),
   setCurrentSeriesName: (name) => set({ currentSeriesName: name }),
   setViewportLayout: (layout) => set({ viewportLayout: layout }),
+  
+  setIsReportModalOpen: (isOpen) => set({ isReportModalOpen: isOpen }),
+  setMemoText: (text) => set({ memoText: text }),
 
   setLoadedSeries: (series) => set({ loadedSeries: series }),
   setActiveSeriesUID: (uid) => set({ activeSeriesUID: uid }),
@@ -86,5 +98,7 @@ export const useViewerStore = create<ViewerState>((set) => ({
     currentSliceIndex: 0,
     totalSlices: 0,
     currentSeriesName: '',
+    isReportModalOpen: false,
+    memoText: '',
   }),
 }));
