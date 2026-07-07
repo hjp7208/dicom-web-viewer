@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_BASE_URL = process.env.BACKEND_BASE_URL;
 const BACKEND_BASIC_AUTH = process.env.BACKEND_BASIC_AUTH;
@@ -16,7 +16,7 @@ const buildAuthHeader = () => {
   return `Basic ${encoded}`;
 };
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   if (!BACKEND_BASE_URL) {
     return NextResponse.json({ message: 'BACKEND_BASE_URL is not configured.' }, { status: 500 });
   }

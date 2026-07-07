@@ -15,7 +15,7 @@ export const fetchPatientInfo = async (patientId: string): Promise<PatientInfo |
 };
 
 export const enrichItemsWithPatientInfo = async (studyItems: StudyItem[]): Promise<StudyItem[]> => {
-  const patientIds = [...new Set(studyItems.map(item => item.patientId).filter(Boolean))];
+  const patientIds = Array.from(new Set(studyItems.map(item => item.patientId).filter(Boolean)));
   if (patientIds.length === 0) {
     return studyItems;
   }
