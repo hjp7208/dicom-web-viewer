@@ -1,7 +1,7 @@
 import { useState, DragEvent } from 'react';
 import { useViewerStore } from '../store/useViewerStore';
 import { parseDicomFiles } from '../utils/dicomParserUtil';
-import initCornerstone from '../utils/cornerstoneInit';
+import initCornerstone from '../../../lib/cornerstoneInit';
 import { getFilesFromDataTransfer, processAndMergeSeries, generateMockAiResults, processZipFiles } from '../utils/fileUploadUtil';
 
 export const useDicomFileDrop = () => {
@@ -33,7 +33,7 @@ export const useDicomFileDrop = () => {
   const handleFiles = async (files: File[]) => {
     setIsUnzipping(true);
     setUploadProgress(0);
-    
+
     // ZIP 분석(메타데이터 파싱) 과정이 길어질 경우, 사용자가 멈춘 것으로 오해하지 않도록
     // 0%에서 15%까지 천천히 차오르는 가짜 진행률(Optimistic Progress)을 시작합니다.
     let fakeProgress = 0;
