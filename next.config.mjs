@@ -1,13 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "https://ksw1360.asia/api/:path*",
-      },
-    ];
-  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -27,9 +19,7 @@ const nextConfig = {
       test: /\.wasm$/,
       type: "asset/resource",
     });
-
     return config;
   },
 };
-
 export default nextConfig;
