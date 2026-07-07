@@ -1,7 +1,7 @@
 import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneTools from '@cornerstonejs/tools';
 import cornerstoneDICOMImageLoader from '@cornerstonejs/dicom-image-loader';
-import { addAllTools } from './cornerstoneToolsUtil';
+import { addAllTools } from '../features/dicom-viewer/utils/cornerstoneToolsUtil';
 
 let initialized = false;
 

@@ -3,7 +3,7 @@ import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneTools from '@cornerstonejs/tools';
 import { useViewerStore } from '../store/useViewerStore';
 import { SeriesData } from '../utils/dicomParserUtil';
-import initCornerstone from '../utils/cornerstoneInit';
+import initCornerstone from '../../../lib/cornerstoneInit';
 import { DICOM_TOOL_GROUP_ID, setupToolGroup } from '../utils/cornerstoneToolsUtil';
 
 const renderingEngineId = 'dicom_viewer_engine';
