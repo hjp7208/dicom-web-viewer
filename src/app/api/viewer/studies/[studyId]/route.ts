@@ -8,11 +8,12 @@ const buildAuthHeader = () => {
     return undefined;
   }
 
-  if (BACKEND_BASIC_AUTH.startsWith('Basic ')) {
-    return BACKEND_BASIC_AUTH;
+  const authStr = BACKEND_BASIC_AUTH.trim();
+  if (authStr.startsWith('Basic ')) {
+    return authStr;
   }
 
-  const encoded = Buffer.from(BACKEND_BASIC_AUTH, 'utf8').toString('base64');
+  const encoded = Buffer.from(authStr, 'utf8').toString('base64');
   return `Basic ${encoded}`;
 };
 
@@ -22,54 +23,54 @@ export async function GET(
 ) {
   const { studyId } = params;
 
-  // 포트폴리오용 임시 테스트 데이터 반환 로직 (Swagger의 StudyMetadataResponse 스키마에 맞춤)
-  if (studyId === 'test') {
-    return NextResponse.json({
-      studyInstanceUid: "1.2.840.113619.2.5.1762583153.215519.978957063.78",
-      patient: {
-        patientId: "PORTFOLIO_001",
-        patientName: "Portfolio^Patient",
-        patientSex: "M",
-        patientBirthDate: "1990-01-01"
-      },
-      study: {
-        studyInstanceUid: "1.2.840.113619.2.5.1762583153.215519.978957063.78",
-        studyDate: "2024-05-01",
-        studyTime: "120000",
-        accessionNumber: "ACC123456",
-        studyDescription: "CT ABDOMEN",
-        institutionName: "Portfolio Hospital"
-      },
-      seriesList: [
-        {
-          seriesInstanceUid: "1.2.840.113619.2.5.1762583153.215519.978957063.79",
-          seriesNumber: 1,
-          seriesDescription: "Axial C+",
-          modality: "CT",
-          modalitySpecific: {
-            sliceThickness: 5.0
-          },
-          instances: [
-            {
-              sopInstanceUid: "1.2.840.10008.1.1.1",
-              instanceNumber: 1,
-              pixelDataUrl: "https://dcm-test-public.s3.ap-northeast-2.amazonaws.com/test-dicom/0001.dcm"
-            },
-            {
-              sopInstanceUid: "1.2.840.10008.1.1.2",
-              instanceNumber: 2,
-              pixelDataUrl: "https://dcm-test-public.s3.ap-northeast-2.amazonaws.com/test-dicom/0002.dcm"
-            },
-            {
-              sopInstanceUid: "1.2.840.10008.1.1.3",
-              instanceNumber: 3,
-              pixelDataUrl: "https://dcm-test-public.s3.ap-northeast-2.amazonaws.com/test-dicom/0003.dcm"
-            }
-          ]
-        }
-      ]
-    });
-  }
+  // 임시 테스트 데이터 반환 로직 (Swagger의 StudyMetadataResponse 스키마에 맞춤)
+  // if (studyId === 'test') {
+  //   return NextResponse.json({
+  //     studyInstanceUid: "1.2.840.113619.2.5.1762583153.215519.978957063.78",
+  //     patient: {
+  //       patientId: "PORTFOLIO_001",
+  //       patientName: "Portfolio^Patient",
+  //       patientSex: "M",
+  //       patientBirthDate: "1990-01-01"
+  //     },
+  //     study: {
+  //       studyInstanceUid: "1.2.840.113619.2.5.1762583153.215519.978957063.78",
+  //       studyDate: "2024-05-01",
+  //       studyTime: "120000",
+  //       accessionNumber: "ACC123456",
+  //       studyDescription: "CT ABDOMEN",
+  //       institutionName: "Portfolio Hospital"
+  //     },
+  //     seriesList: [
+  //       {
+  //         seriesInstanceUid: "1.2.840.113619.2.5.1762583153.215519.978957063.79",
+  //         seriesNumber: 1,
+  //         seriesDescription: "Axial C+",
+  //         modality: "CT",
+  //         modalitySpecific: {
+  //           sliceThickness: 5.0
+  //         },
+  //         instances: [
+  //           {
+  //             sopInstanceUid: "1.2.840.10008.1.1.1",
+  //             instanceNumber: 1,
+  //             pixelDataUrl: "https://dcm-test-public.s3.ap-northeast-2.amazonaws.com/test-dicom/0001.dcm"
+  //           },
+  //           {
+  //             sopInstanceUid: "1.2.840.10008.1.1.2",
+  //             instanceNumber: 2,
+  //             pixelDataUrl: "https://dcm-test-public.s3.ap-northeast-2.amazonaws.com/test-dicom/0002.dcm"
+  //           },
+  //           {
+  //             sopInstanceUid: "1.2.840.10008.1.1.3",
+  //             instanceNumber: 3,
+  //             pixelDataUrl: "https://dcm-test-public.s3.ap-northeast-2.amazonaws.com/test-dicom/0003.dcm"
+  //           }
+  //         ]
+  //       }
+  //     ]
+  //   });
+  // }
 
   // 실제 백엔드 연동
   if (!BACKEND_BASE_URL) {
