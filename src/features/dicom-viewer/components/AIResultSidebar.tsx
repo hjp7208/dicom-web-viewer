@@ -5,14 +5,13 @@ import { useViewerStore } from '@/features/dicom-viewer/store/useViewerStore';
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 
 export default function AIResultSidebar() {
-  const { showAiOverlay, toggleAiOverlay, currentSliceIndex, currentSeriesName, aiResults, memoText, setMemoText, setIsReportModalOpen } = useViewerStore();
+  const { showAiOverlay, toggleAiOverlay, currentSliceIndex, currentSeriesName, aiResults, memoText, setMemoText, setIsReportModalOpen, triggerJumpSlice } = useViewerStore();
   
   // Local state for the AI slices navigation
   const [currentAiIdx, setCurrentAiIdx] = useState(0);
 
   const navigateToSlice = (sliceIndex: number) => {
-    // Trigger custom event to tell DicomViewer to jump to slice
-    window.dispatchEvent(new CustomEvent('dicom-jump-slice', { detail: { sliceIndex } }));
+    triggerJumpSlice(sliceIndex);
   };
 
   const handleAiThumbnailClick = (idx: number, sliceIndex: number) => {

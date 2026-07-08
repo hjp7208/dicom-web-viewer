@@ -31,7 +31,7 @@ export const useCornerstoneViewport = ({
   const [sliceIndex, setSliceIndex] = useState(0);
   const [zoom, setZoom] = useState(1.0);
   const [voi, setVoi] = useState<{ ww: number | string, wc: number | string }>({ ww: 'Auto', wc: 'Auto' });
-  const { activeTool, setCurrentSliceIndex, showAiOverlay } = useViewerStore();
+  const { activeTool, setCurrentSliceIndex, showAiOverlay, resetTrigger, presetTrigger, jumpSliceTrigger } = useViewerStore();
 
   const updateOverlay = () => {
     if (!aiOverlayRef?.current) return;
@@ -264,55 +264,47 @@ export const useCornerstoneViewport = ({
 
   // Handle custom events
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive || !jumpSliceTrigger) return;
+    
+    const newIdx = jumpSliceTrigger.sliceIndex;
+    const renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
+    const viewport = renderingEngine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
+    if (viewport) {
+      viewport.setImageIdIndex(newIdx);
+      viewport.render();
+    }
+  }, [isActive, viewportId, jumpSliceTrigger]);
 
-    const handleJumpSlice = (e: Event) => {
-      const { sliceIndex: newIdx } = (e as CustomEvent).detail;
-      const renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
-      const viewport = renderingEngine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
-      if (viewport) {
-        viewport.setImageIdIndex(newIdx);
-        viewport.render();
-      }
-    };
+  useEffect(() => {
+    if (!isActive || resetTrigger === 0) return;
 
-    const handleReset = () => {
-      const renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
-      const viewport = renderingEngine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
-      if (viewport) {
-        viewport.resetCamera();
-        if (viewport.resetProperties) viewport.resetProperties();
-        cornerstoneTools.annotation.state.getAnnotationManager().removeAllAnnotations();
-        viewport.render();
-      }
-    };
+    const renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
+    const viewport = renderingEngine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
+    if (viewport) {
+      viewport.resetCamera();
+      if (viewport.resetProperties) viewport.resetProperties();
+      cornerstoneTools.annotation.state.getAnnotationManager().removeAllAnnotations();
+      viewport.render();
+    }
+  }, [isActive, viewportId, resetTrigger]);
 
-    const handlePresetChange = (e: Event) => {
-      const { preset } = (e as CustomEvent).detail;
-      const renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
-      const viewport = renderingEngine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
-      if (viewport) {
-        let ww = 400, wc = 40;
-        if (preset === 'Lung') { ww = 1500; wc = -600; }
-        else if (preset === 'Bone') { ww = 1500; wc = 300; }
-        else if (preset === 'Brain') { ww = 80; wc = 40; }
-        else if (preset === 'Abdomen') { ww = 400; wc = 40; }
+  useEffect(() => {
+    if (!isActive || !presetTrigger) return;
+    
+    const { preset } = presetTrigger;
+    const renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
+    const viewport = renderingEngine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
+    if (viewport) {
+      let ww = 400, wc = 40;
+      if (preset === 'Lung') { ww = 1500; wc = -600; }
+      else if (preset === 'Bone') { ww = 1500; wc = 300; }
+      else if (preset === 'Brain') { ww = 80; wc = 40; }
+      else if (preset === 'Abdomen') { ww = 400; wc = 40; }
 
-        viewport.setProperties({ voiRange: { lower: wc - ww / 2, upper: wc + ww / 2 } });
-        viewport.render();
-      }
-    };
-
-    window.addEventListener('dicom-jump-slice', handleJumpSlice);
-    window.addEventListener('dicom-viewer-reset', handleReset);
-    window.addEventListener('dicom-preset-change', handlePresetChange);
-
-    return () => {
-      window.removeEventListener('dicom-jump-slice', handleJumpSlice);
-      window.removeEventListener('dicom-viewer-reset', handleReset);
-      window.removeEventListener('dicom-preset-change', handlePresetChange);
-    };
-  }, [isActive, viewportId]);
+      viewport.setProperties({ voiRange: { lower: wc - ww / 2, upper: wc + ww / 2 } });
+      viewport.render();
+    }
+  }, [isActive, viewportId, presetTrigger]);
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!series) return;

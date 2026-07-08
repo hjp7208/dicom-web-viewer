@@ -50,6 +50,14 @@ interface ViewerState {
 
   setAiResults: (results: AiResult[]) => void;
   resetViewer: () => void;
+
+  // Window Event Replacements
+  resetTrigger: number;
+  triggerReset: () => void;
+  presetTrigger: { preset: string; timestamp: number } | null;
+  triggerPresetChange: (preset: string) => void;
+  jumpSliceTrigger: { sliceIndex: number; timestamp: number } | null;
+  triggerJumpSlice: (sliceIndex: number) => void;
 }
 
 export const useViewerStore = create<ViewerState>((set) => ({
@@ -70,6 +78,10 @@ export const useViewerStore = create<ViewerState>((set) => ({
   viewportSeriesMap: {},
 
   aiResults: [],
+
+  resetTrigger: 0,
+  presetTrigger: null,
+  jumpSliceTrigger: null,
 
   setActiveTool: (tool) => set({ activeTool: tool }),
   toggleAnonymization: () => set((state) => ({ isAnonymized: !state.isAnonymized })),
@@ -101,4 +113,8 @@ export const useViewerStore = create<ViewerState>((set) => ({
     isReportModalOpen: false,
     memoText: '',
   }),
+
+  triggerReset: () => set((state) => ({ resetTrigger: state.resetTrigger + 1 })),
+  triggerPresetChange: (preset) => set({ presetTrigger: { preset, timestamp: Date.now() } }),
+  triggerJumpSlice: (sliceIndex) => set({ jumpSliceTrigger: { sliceIndex, timestamp: Date.now() } }),
 }));
