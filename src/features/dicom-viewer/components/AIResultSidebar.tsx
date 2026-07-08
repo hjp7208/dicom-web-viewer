@@ -5,7 +5,9 @@ import { useViewerStore } from '@/features/dicom-viewer/store/useViewerStore';
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 
 export default function AIResultSidebar() {
-  const { showAiOverlay, toggleAiOverlay, currentSliceIndex, currentSeriesName, aiResults, memoText, setMemoText, setIsReportModalOpen, triggerJumpSlice } = useViewerStore();
+  const { showAiOverlay, toggleAiOverlay, currentSliceIndex, currentSeriesName, aiResults, activeSeriesUID, memoText, setMemoText, setIsReportModalOpen, triggerJumpSlice } = useViewerStore();
+  
+  const currentAiResults = activeSeriesUID ? (aiResults[activeSeriesUID] || []) : [];
   
   // Local state for the AI slices navigation
   const [currentAiIdx, setCurrentAiIdx] = useState(0);
@@ -23,25 +25,25 @@ export default function AIResultSidebar() {
     if (currentAiIdx > 0) {
       const newIdx = currentAiIdx - 1;
       setCurrentAiIdx(newIdx);
-      navigateToSlice(aiResults[newIdx].sliceIndex);
+      navigateToSlice(currentAiResults[newIdx].sliceIndex);
     }
   };
 
   const handleNextAi = () => {
-    if (currentAiIdx < aiResults.length - 1) {
+    if (currentAiIdx < currentAiResults.length - 1) {
       const newIdx = currentAiIdx + 1;
       setCurrentAiIdx(newIdx);
-      navigateToSlice(aiResults[newIdx].sliceIndex);
+      navigateToSlice(currentAiResults[newIdx].sliceIndex);
     }
   };
 
   const handleJumpToAi = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       const val = parseInt(e.currentTarget.value);
-      if (!isNaN(val) && val >= 1 && val <= aiResults.length) {
+      if (!isNaN(val) && val >= 1 && val <= currentAiResults.length) {
         const newIdx = val - 1;
         setCurrentAiIdx(newIdx);
-        navigateToSlice(aiResults[newIdx].sliceIndex);
+        navigateToSlice(currentAiResults[newIdx].sliceIndex);
       }
     }
   };
@@ -65,19 +67,19 @@ export default function AIResultSidebar() {
         <h2 className="text-white font-semibold text-lg flex items-center gap-2">
           AI 분석 결과
           <span className="bg-red-500/20 text-red-400 text-xs px-2 py-0.5 rounded-full">
-            {aiResults.length}건
+            {currentAiResults.length}건
           </span>
         </h2>
       </div>
 
       {/* AI Thumbnails */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {aiResults.length === 0 && (
+        {currentAiResults.length === 0 && (
           <div className="text-neutral-500 text-center text-sm mt-10">
             DICOM 파일을 업로드하면 AI 분석 결과가 표시됩니다.
           </div>
         )}
-        {aiResults.map((result, idx) => (
+        {currentAiResults.map((result, idx) => (
           <div 
             key={result.id}
             onClick={() => handleAiThumbnailClick(idx, result.sliceIndex)}
@@ -134,7 +136,7 @@ export default function AIResultSidebar() {
         <div className="flex items-center justify-center gap-4 bg-neutral-900 rounded-lg p-2 border border-neutral-800">
           <button 
             onClick={handlePrevAi}
-            disabled={currentAiIdx === 0 || aiResults.length === 0}
+            disabled={currentAiIdx === 0 || currentAiResults.length === 0}
             className="p-1 text-neutral-400 hover:text-white disabled:opacity-30 transition-colors"
           >
             <ChevronLeft />
@@ -143,18 +145,18 @@ export default function AIResultSidebar() {
           <div className="flex items-center gap-2 text-sm text-neutral-400">
             <input 
               type="text" 
-              defaultValue={aiResults.length > 0 ? currentAiIdx + 1 : 0}
+              defaultValue={currentAiResults.length > 0 ? currentAiIdx + 1 : 0}
               key={currentAiIdx} // re-render on change
               onKeyDown={handleJumpToAi}
-              disabled={aiResults.length === 0}
+              disabled={currentAiResults.length === 0}
               className="w-8 text-center bg-neutral-800 border border-neutral-700 rounded text-white py-1 focus:outline-none focus:border-blue-500 disabled:opacity-50"
             />
-            <span>/ {aiResults.length}</span>
+            <span>/ {currentAiResults.length}</span>
           </div>
 
           <button 
             onClick={handleNextAi}
-            disabled={currentAiIdx === aiResults.length - 1 || aiResults.length === 0}
+            disabled={currentAiIdx === currentAiResults.length - 1 || currentAiResults.length === 0}
             className="p-1 text-neutral-400 hover:text-white disabled:opacity-30 transition-colors"
           >
             <ChevronRight />

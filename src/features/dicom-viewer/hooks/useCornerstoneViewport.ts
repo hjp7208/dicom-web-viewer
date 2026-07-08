@@ -46,7 +46,8 @@ export const useCornerstoneViewport = ({
       return;
     }
 
-    const aiResult = state.aiResults.find(r => r.sliceIndex === currentIdx);
+    const currentAiResults = series?.seriesUID ? state.aiResults[series.seriesUID] : undefined;
+    const aiResult = currentAiResults?.find(r => r.sliceIndex === currentIdx);
 
     if (state.showAiOverlay && aiResult) {
       const imgData = v.getImageData();
