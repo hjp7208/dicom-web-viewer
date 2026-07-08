@@ -130,8 +130,6 @@ export const DicomViewport = ({
               writingMode: 'vertical-lr',
               direction: 'rtl',
             }}
-            // @ts-expect-error - orient is a non-standard attribute used for Firefox
-            orient="vertical"
             title="Slice Indicator"
             onClick={(e) => e.stopPropagation()}
           />
