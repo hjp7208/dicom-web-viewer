@@ -17,17 +17,15 @@ export const DicomViewport = ({
   onClick: () => void
 }) => {
   const viewerRef = useRef<HTMLDivElement>(null);
-  const aiOverlayRef = useRef<HTMLDivElement>(null);
   const pixelInfoRef = useRef<HTMLSpanElement>(null);
   const { isAnonymized } = useViewerStore();
 
-  const { sliceIndex, zoom, voi, handleSliderChange, handleWheel } = useCornerstoneViewport({
+  const { sliceIndex, zoom, voi, handleSliderChange, handleWheel, aiOverlayBox } = useCornerstoneViewport({
     viewerRef,
     viewportId,
     series,
     isActive,
     onSliceChange,
-    aiOverlayRef,
     pixelInfoRef
   });
 
@@ -103,11 +101,15 @@ export const DicomViewport = ({
       )}
 
       {/* AI Overlay Box */}
-      {series && (
+      {series && aiOverlayBox && (
         <div
-          ref={aiOverlayRef}
           className="absolute border-2 border-red-500 bg-red-500/10 pointer-events-none z-20"
-          style={{ display: 'none' }}
+          style={{ 
+            left: `${aiOverlayBox.left}px`, 
+            top: `${aiOverlayBox.top}px`, 
+            width: `${aiOverlayBox.width}px`, 
+            height: `${aiOverlayBox.height}px` 
+          }}
         />
       )}
 

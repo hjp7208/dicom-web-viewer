@@ -14,7 +14,6 @@ interface UseCornerstoneViewportProps {
   series: SeriesData | null;
   isActive: boolean;
   onSliceChange?: (index: number) => void;
-  aiOverlayRef?: React.RefObject<HTMLDivElement>;
   pixelInfoRef?: React.RefObject<HTMLSpanElement>;
 }
 
@@ -24,24 +23,28 @@ export const useCornerstoneViewport = ({
   series,
   isActive,
   onSliceChange,
-  aiOverlayRef,
   pixelInfoRef
 }: UseCornerstoneViewportProps) => {
   const [isReady, setIsReady] = useState(false);
   const [sliceIndex, setSliceIndex] = useState(0);
   const [zoom, setZoom] = useState(1.0);
   const [voi, setVoi] = useState<{ ww: number | string, wc: number | string }>({ ww: 'Auto', wc: 'Auto' });
+  const [aiOverlayBox, setAiOverlayBox] = useState<{ left: number; top: number; width: number; height: number; } | null>(null);
   const { activeTool, setCurrentSliceIndex, showAiOverlay, resetTrigger, presetTrigger, jumpSliceTrigger } = useViewerStore();
 
   const updateOverlay = () => {
-    if (!aiOverlayRef?.current) return;
     const v = cornerstone.getRenderingEngine(renderingEngineId)?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
-    if (!v) return;
+    if (!v) {
+      setAiOverlayBox(null);
+      return;
+    }
 
     const state = useViewerStore.getState();
-    // Use the actual image index from the viewport if available, else sliceIndex state
     const currentIdx = v.getCurrentImageIdIndex();
-    if (currentIdx === undefined) return;
+    if (currentIdx === undefined) {
+      setAiOverlayBox(null);
+      return;
+    }
 
     const aiResult = state.aiResults.find(r => r.sliceIndex === currentIdx);
 
@@ -64,14 +67,15 @@ export const useCornerstoneViewport = ({
         const topLeftCanvas = v.worldToCanvas(topLeftWorld);
         const bottomRightCanvas = v.worldToCanvas(bottomRightWorld);
 
-        aiOverlayRef.current.style.left = `${topLeftCanvas[0]}px`;
-        aiOverlayRef.current.style.top = `${topLeftCanvas[1]}px`;
-        aiOverlayRef.current.style.width = `${bottomRightCanvas[0] - topLeftCanvas[0]}px`;
-        aiOverlayRef.current.style.height = `${bottomRightCanvas[1] - topLeftCanvas[1]}px`;
-        aiOverlayRef.current.style.display = 'block';
+        setAiOverlayBox({
+          left: topLeftCanvas[0],
+          top: topLeftCanvas[1],
+          width: bottomRightCanvas[0] - topLeftCanvas[0],
+          height: bottomRightCanvas[1] - topLeftCanvas[1]
+        });
       }
     } else {
-      aiOverlayRef.current.style.display = 'none';
+      setAiOverlayBox(null);
     }
   };
 
@@ -335,5 +339,5 @@ export const useCornerstoneViewport = ({
     }
   };
 
-  return { isReady, sliceIndex, zoom, voi, handleSliderChange, handleWheel };
+  return { isReady, sliceIndex, zoom, voi, handleSliderChange, handleWheel, aiOverlayBox };
 };
