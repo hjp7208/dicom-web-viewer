@@ -87,13 +87,17 @@ export const useCornerstoneViewport = ({
   useEffect(() => {
     if (!isReady || !series || series.imageIds.length === 0 || !viewerRef.current) return;
 
-    let renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
-
     const loadAndRender = async () => {
       try {
+        let renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
         if (!renderingEngine) {
-          renderingEngine = new cornerstone.RenderingEngine(renderingEngineId);
+          try {
+            renderingEngine = new cornerstone.RenderingEngine(renderingEngineId);
+          } catch (e) {
+            renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
+          }
         }
+        if (!renderingEngine) throw new Error('Could not initialize rendering engine');
 
         const viewportInput = {
           viewportId,
