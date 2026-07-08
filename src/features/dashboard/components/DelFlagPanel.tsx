@@ -18,17 +18,27 @@ interface DelFlagStat {
     totalBytes: number;
 }
 
+type Status = "loading" | "success" | "error";
+
 export default function DelFlagPanel() {
     const [studies, setStudies] = useState<DelFlagItem[]>([]);
     const [deletedTotalBytes, setDeletedTotalBytes] = useState(0);
+    const [status, setStatus] = useState<Status>("loading");
 
     useEffect(() => {
-        getDelFlag().then(setStudies).catch(console.error);
+        setStatus("loading");
 
-        getDelFlagStats().then((stats: DelFlagStat[]) => {
-            const deleted = stats.find((s) => s.delFlag === true);
-            setDeletedTotalBytes(deleted?.totalBytes ?? 0);
-        }).catch(console.error);
+        Promise.all([getDelFlag(), getDelFlagStats()])
+            .then(([studiesData, statsData]: [DelFlagItem[], DelFlagStat[]]) => {
+                setStudies(studiesData);
+                const deleted = statsData.find((s) => s.delFlag === true);
+                setDeletedTotalBytes(deleted?.totalBytes ?? 0);
+                setStatus("success");
+            })
+            .catch((e) => {
+                console.error(e);
+                setStatus("error");
+            });
     }, []);
 
     const handleRestore = async (studyId: number) => {
@@ -36,7 +46,6 @@ export default function DelFlagPanel() {
             await restoreStudy(studyId);
             setStudies((prev) => prev.filter((s) => s.id !== studyId));
 
-            // 복구 성공 후 용량 재호출
             getDelFlagStats().then((stats: DelFlagStat[]) => {
                 const deleted = stats.find((s) => s.delFlag === true);
                 setDeletedTotalBytes(deleted?.totalBytes ?? 0);
@@ -52,18 +61,37 @@ export default function DelFlagPanel() {
         <div className="bg-white rounded-2xl p-5 h-full">
             <div className="flex justify-between items-center mb-1">
                 <h2 className="text-sm font-medium">DELFLAG 현황</h2>
-                <span className="text-xs text-gray-400">대기중 {studies.length}건</span>
+                {status === "success" && (
+                    <span className="text-xs text-gray-400">대기중 {studies.length}건</span>
+                )}
             </div>
             <p className="text-xs text-gray-400 mb-3">삭제 예정 용량 - {deletedTotalGb}GB</p>
-            <div className="overflow-y-auto max-h-96">
-                {studies.map((study) => (
-                    <DelFlagCard
-                        key={study.id}
-                        study={study}
-                        onRestore={handleRestore}
-                    />
-                ))}
-            </div>
+
+            {status === "loading" && (
+                <p className="text-sm text-gray-400 py-6 text-center">불러오는 중...</p>
+            )}
+
+            {status === "error" && (
+                <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-3 text-center">
+                    <p className="text-xs text-red-500">DELFLAG 목록을 불러오지 못했습니다.</p>
+                </div>
+            )}
+
+            {status === "success" && studies.length === 0 && (
+                <p className="text-sm text-gray-400 py-6 text-center">복구 대기 중인 검사가 없습니다.</p>
+            )}
+
+            {status === "success" && studies.length > 0 && (
+                <div className="overflow-y-auto max-h-96">
+                    {studies.map((study) => (
+                        <DelFlagCard
+                            key={study.id}
+                            study={study}
+                            onRestore={handleRestore}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
