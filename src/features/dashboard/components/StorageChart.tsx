@@ -7,6 +7,9 @@ interface StorageData {
     dbGb: number;
     s3Gb: number;
     totalGb: number;
+    diskTotalGb: number;
+    diskFreeGb: number;
+    diskUsedPercent: number;
 }
 
 export default function StorageChart() {
@@ -17,13 +20,18 @@ export default function StorageChart() {
     }, []);
 
     const usedGb = data?.totalGb ?? 0;
-    const totalCapacity = 9.8;
-    const freeGb = totalCapacity - usedGb;
+    const totalCapacity = data?.diskTotalGb && data.diskTotalGb > 0 ? data.diskTotalGb : null;
+    const freeGb = totalCapacity ? totalCapacity - usedGb : 0;
 
-    const chartData = [
-        { name: "사용 중", value: usedGb },
-        { name: "여유", value: freeGb },
-    ];
+    const chartData = totalCapacity
+        ? [
+            { name: "사용 중", value: usedGb },
+            { name: "여유", value: freeGb },
+        ]
+        : [
+            { name: "사용 중", value: usedGb },
+            { name: "여유", value: 1 },
+        ];
 
     return (
         <div className="bg-white rounded-2xl p-5">
@@ -45,7 +53,9 @@ export default function StorageChart() {
                     </Pie>
                     <Tooltip formatter={(value) => [`${Number(value).toFixed(1)} GB`]} />
                 </PieChart>
-                <p className="text-xs text-gray-400 mt-2">{usedGb.toFixed(1)} GB / {totalCapacity} GB</p>
+                <p className="text-xs text-gray-400 mt-2">
+                    {usedGb.toFixed(1)} GB {totalCapacity ? `/ ${totalCapacity.toFixed(1)} GB` : "/ 전체 용량 확인 중"}
+                </p>
             </div>
         </div>
     );
