@@ -23,6 +23,7 @@ export default function ReportModal() {
   // Active Series 데이터 가져오기
   const currentSeriesUID = viewportSeriesMap[activeViewportId];
   const activeSeries = loadedSeries.find(s => s.seriesUID === currentSeriesUID);
+  const currentAiResults = currentSeriesUID ? (aiResults[currentSeriesUID] || []) : [];
   
   // 환자/검사 메타데이터
   const metadata = {
@@ -49,7 +50,7 @@ export default function ReportModal() {
       const timer = setTimeout(() => {
         const generatedText = 
 `[의학 AI 추론 결과 요약]
-- 총 ${aiResults.length}건의 이상 소견이 발견되었습니다.
+- 총 ${currentAiResults.length}건의 이상 소견이 발견되었습니다.
 
 [담당의 소견 메모]
 ${memoText || "작성된 소견 메모가 없습니다."}
@@ -73,7 +74,7 @@ ${memoText || "작성된 소견 메모가 없습니다."}
 
       return () => clearTimeout(timer);
     }
-  }, [isReportModalOpen, metadata.referringPhysician, aiResults.length, memoText]);
+  }, [isReportModalOpen, metadata.referringPhysician, currentAiResults.length, memoText]);
 
   if (!isReportModalOpen) return null;
 
@@ -146,12 +147,12 @@ ${memoText || "작성된 소견 메모가 없습니다."}
               AI 분석결과 (의학 AI에 의해 자동으로 채워짐)
             </h3>
             <div className="flex flex-col gap-3">
-              {aiResults.length === 0 ? (
+              {currentAiResults.length === 0 ? (
                 <div className="text-center p-8 bg-white border border-neutral-200 rounded-lg text-neutral-400">
                   AI 분석 결과가 없습니다.
                 </div>
               ) : (
-                aiResults.map((result, idx) => (
+                currentAiResults.map((result, idx) => (
                   <div key={result.id} className="flex bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm">
                     {/* Mock Image Placeholder */}
                     <div className="w-48 h-48 bg-red-100 flex flex-col items-center justify-center shrink-0 border-r border-neutral-200 relative overflow-hidden">

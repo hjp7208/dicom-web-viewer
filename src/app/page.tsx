@@ -4,6 +4,6 @@ const ViewerLayout = dynamic(() => import('@/features/dicom-viewer/components/Vi
   ssr: false,
 });
 
-export default function Home() {
-  return <ViewerLayout />;
+export default function Home({ searchParams }: { searchParams: { studyId?: string } }) {
+  return <ViewerLayout studyId={searchParams.studyId} />;
 }

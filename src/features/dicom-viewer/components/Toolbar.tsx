@@ -12,7 +12,8 @@ export default function Toolbar() {
   const { 
     activeTool, setActiveTool, 
     isAnonymized, toggleAnonymization,
-    viewportLayout, setViewportLayout
+    viewportLayout, setViewportLayout,
+    triggerReset, triggerPresetChange
   } = useViewerStore();
 
   const [presetOpen, setPresetOpen] = useState(false);
@@ -28,12 +29,11 @@ export default function Toolbar() {
   ];
 
   const handleReset = () => {
-    // We'll dispatch a custom event to trigger reset in the viewer
-    window.dispatchEvent(new CustomEvent('dicom-viewer-reset'));
+    triggerReset();
   };
 
   const handlePresetChange = (preset: string) => {
-    window.dispatchEvent(new CustomEvent('dicom-preset-change', { detail: { preset } }));
+    triggerPresetChange(preset);
     setPresetOpen(false);
   };
 

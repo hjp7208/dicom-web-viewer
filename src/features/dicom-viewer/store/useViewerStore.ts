@@ -29,7 +29,7 @@ interface ViewerState {
   activeViewportId: string; // ID of the viewport currently receiving actions
   viewportSeriesMap: Record<string, string>; // Maps viewportId -> seriesUID
 
-  aiResults: AiResult[];
+  aiResults: Record<string, AiResult[]>;
 
   // Actions
   setActiveTool: (tool: string) => void;
@@ -48,8 +48,16 @@ interface ViewerState {
   setActiveViewportId: (id: string) => void;
   setViewportSeriesMap: (viewportId: string, seriesUID: string) => void;
 
-  setAiResults: (results: AiResult[]) => void;
+  setAiResults: (seriesUID: string, results: AiResult[]) => void;
   resetViewer: () => void;
+
+  // Window Event Replacements
+  resetTrigger: number;
+  triggerReset: () => void;
+  presetTrigger: { preset: string; timestamp: number } | null;
+  triggerPresetChange: (preset: string) => void;
+  jumpSliceTrigger: { sliceIndex: number; timestamp: number } | null;
+  triggerJumpSlice: (sliceIndex: number) => void;
 }
 
 export const useViewerStore = create<ViewerState>((set) => ({
@@ -69,7 +77,11 @@ export const useViewerStore = create<ViewerState>((set) => ({
   activeViewportId: 'dicom_viewport_0',
   viewportSeriesMap: {},
 
-  aiResults: [],
+  aiResults: {},
+
+  resetTrigger: 0,
+  presetTrigger: null,
+  jumpSliceTrigger: null,
 
   setActiveTool: (tool) => set({ activeTool: tool }),
   toggleAnonymization: () => set((state) => ({ isAnonymized: !state.isAnonymized })),
@@ -89,16 +101,22 @@ export const useViewerStore = create<ViewerState>((set) => ({
     viewportSeriesMap: { ...state.viewportSeriesMap, [viewportId]: seriesUID }
   })),
 
-  setAiResults: (results) => set({ aiResults: results }),
+  setAiResults: (seriesUID, results) => set((state) => ({ 
+    aiResults: { ...state.aiResults, [seriesUID]: results } 
+  })),
   resetViewer: () => set({
     loadedSeries: [],
     activeSeriesUID: null,
     viewportSeriesMap: {},
-    aiResults: [],
+    aiResults: {},
     currentSliceIndex: 0,
     totalSlices: 0,
     currentSeriesName: '',
     isReportModalOpen: false,
     memoText: '',
   }),
+
+  triggerReset: () => set((state) => ({ resetTrigger: state.resetTrigger + 1 })),
+  triggerPresetChange: (preset) => set({ presetTrigger: { preset, timestamp: Date.now() } }),
+  triggerJumpSlice: (sliceIndex) => set({ jumpSliceTrigger: { sliceIndex, timestamp: Date.now() } }),
 }));

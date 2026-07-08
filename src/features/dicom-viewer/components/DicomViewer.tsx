@@ -14,7 +14,8 @@ export default function DicomViewer() {
     setActiveViewportId,
     viewportSeriesMap,
     setCurrentSeriesName,
-    setTotalSlices
+    setTotalSlices,
+    setActiveSeriesUID
   } = useViewerStore();
 
   const { isDragging, isParsing, isUnzipping, uploadProgress, onDragOver, onDragLeave, onDrop, handleFiles } = useDicomFileDrop();
@@ -33,6 +34,7 @@ export default function DicomViewer() {
     setActiveViewportId(viewportId);
     const seriesUID = viewportSeriesMap[viewportId];
     if (seriesUID) {
+      setActiveSeriesUID(seriesUID);
       const series = loadedSeries.find(s => s.seriesUID === seriesUID);
       if (series) {
         setCurrentSeriesName(series.series.seriesDescription);

@@ -17,7 +17,8 @@ export const useDicomFileDrop = () => {
     setViewportSeriesMap,
     setCurrentSeriesName,
     setTotalSlices,
-    setAiResults
+    setAiResults,
+    setActiveSeriesUID
   } = useViewerStore();
 
   const onDragOver = (e: DragEvent<HTMLDivElement>) => {
@@ -73,11 +74,12 @@ export const useDicomFileDrop = () => {
           if (seriesList.length > 0) {
             const firstSeries = seriesList[0];
             setViewportSeriesMap(activeViewportId, firstSeries.seriesUID);
+            setActiveSeriesUID(firstSeries.seriesUID);
             setCurrentSeriesName(firstSeries.series.seriesDescription);
             setTotalSlices(firstSeries.imageIds.length);
 
             // Generate Random AI Results for the first series
-            setAiResults(generateMockAiResults(firstSeries.imageIds.length));
+            setAiResults(firstSeries.seriesUID, generateMockAiResults(firstSeries.imageIds.length));
           }
           setIsParsing(false);
           setUploadProgress(0);
