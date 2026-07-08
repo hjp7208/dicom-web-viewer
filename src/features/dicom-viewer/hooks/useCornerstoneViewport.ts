@@ -68,15 +68,26 @@ export const useCornerstoneViewport = ({
         const topLeftCanvas = v.worldToCanvas(topLeftWorld);
         const bottomRightCanvas = v.worldToCanvas(bottomRightWorld);
 
-        setAiOverlayBox({
+        const newBox = {
           left: topLeftCanvas[0],
           top: topLeftCanvas[1],
           width: bottomRightCanvas[0] - topLeftCanvas[0],
           height: bottomRightCanvas[1] - topLeftCanvas[1]
+        };
+
+        setAiOverlayBox((prev) => {
+          if (prev && 
+              Math.abs(prev.left - newBox.left) < 1 && 
+              Math.abs(prev.top - newBox.top) < 1 && 
+              Math.abs(prev.width - newBox.width) < 1 && 
+              Math.abs(prev.height - newBox.height) < 1) {
+            return prev;
+          }
+          return newBox;
         });
       }
     } else {
-      setAiOverlayBox(null);
+      setAiOverlayBox((prev) => prev !== null ? null : prev);
     }
   };
 
@@ -219,16 +230,34 @@ export const useCornerstoneViewport = ({
           }
         };
 
+        const handleImageRendered = () => updateOverlay();
+        const resizeObserver = new ResizeObserver(() => {
+          const engine = cornerstone.getRenderingEngine(renderingEngineId);
+          if (engine) {
+            engine.resize(true, false);
+            requestAnimationFrame(() => updateOverlay());
+          }
+        });
+        if (viewerRef.current) {
+          resizeObserver.observe(viewerRef.current);
+        }
+
         viewerRef.current?.addEventListener(cornerstone.Enums.Events.STACK_NEW_IMAGE, handleNewImage as EventListener);
         viewerRef.current?.addEventListener(cornerstone.Enums.Events.CAMERA_MODIFIED, handleCameraModified);
         viewerRef.current?.addEventListener(cornerstone.Enums.Events.VOI_MODIFIED, handleVoiModified);
+        viewerRef.current?.addEventListener(cornerstone.Enums.Events.IMAGE_RENDERED, handleImageRendered);
         viewerRef.current?.addEventListener('mousemove', handleMouseMove);
         viewerRef.current?.addEventListener('mouseleave', handleMouseLeave);
 
         return () => {
+          if (viewerRef.current) {
+            resizeObserver.unobserve(viewerRef.current);
+          }
+          resizeObserver.disconnect();
           viewerRef.current?.removeEventListener(cornerstone.Enums.Events.STACK_NEW_IMAGE, handleNewImage as EventListener);
           viewerRef.current?.removeEventListener(cornerstone.Enums.Events.CAMERA_MODIFIED, handleCameraModified);
           viewerRef.current?.removeEventListener(cornerstone.Enums.Events.VOI_MODIFIED, handleVoiModified);
+          viewerRef.current?.removeEventListener(cornerstone.Enums.Events.IMAGE_RENDERED, handleImageRendered);
           viewerRef.current?.removeEventListener('mousemove', handleMouseMove);
           viewerRef.current?.removeEventListener('mouseleave', handleMouseLeave);
         };
