@@ -46,3 +46,6 @@ next-env.d.ts
 
 # GEMINI.md
 GEMINI.md
+
+# .js
+*.js
