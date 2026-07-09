@@ -43,3 +43,6 @@ next-env.d.ts
 /backend_ref/
 /orthanc-db/
 /.agents/
+
+# GEMINI.md
+GEMINI.md

@@ -1,6 +1,6 @@
 "use client";
 
-import { StudyItem } from '@/features/search/types';
+import { StudyItem } from '@/features/studies/types';
 import StudyCard from './StudyCard';
 
 interface StudyListProps {

@@ -1,17 +1,16 @@
 "use client";
 
-import { useSearch } from '@/features/search/hooks/useSearch';
-import FilterPanel from '@/features/search/components/FilterPanel';
-import SearchBar from '@/features/search/components/SearchBar';
-import DateRangePicker from '@/features/search/components/DateRangePicker';
-import ErrorMessage from '@/features/search/components/ErrorMessage';
-import StudyList from '@/features/search/components/StudyList';
-import StudyDetailPanel from '@/features/search/components/StudyDetailPanel';
+import { useStudies } from '@/features/studies/hooks/useStudies';
+import FilterPanel from '@/features/studies/components/FilterPanel';
+import SearchBar from '@/features/studies/components/SearchBar';
+import DateRangePicker from '@/features/studies/components/DateRangePicker';
+import ErrorMessage from '@/features/studies/components/ErrorMessage';
+import StudyList from '@/features/studies/components/StudyList';
+import StudyDetailPanel from '@/features/studies/components/StudyDetailPanel';
 
 export default function SearchPage() {
   const {
     query,
-    items,
     activeItem,
     loading,
     error,
@@ -27,7 +26,7 @@ export default function SearchPage() {
     toggleFilter,
     resetFilters,
     handleSelectItem,
-  } = useSearch();
+  } = useStudies();
 
   return (
     <div className="min-h-screen bg-slate-300 text-slate-900 px-6 py-6">

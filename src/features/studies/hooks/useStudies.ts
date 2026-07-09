@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
-import { StudyItem, SearchFilters } from '@/features/search/types';
-import { fetchSearchResults, enrichItemsWithPatientInfo, fetchPatientInfo } from '@/features/search/api/searchApi';
-import { normalizeStudyItem } from '@/features/search/utils/dataNormalizer';
+import { useEffect, useState } from 'react';
+import { StudyItem, SearchFilters } from '@/features/studies/types';
+import { fetchStudies, enrichItemsWithPatientInfo, fetchPatientInfo } from '@/features/studies/api/studiesApi';
+import { normalizeStudyItem } from '@/features/studies/utils/dataNormalizer';
 
-export const useSearch = () => {
+export const useStudies = () => {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const [selectedFilters, setSelectedFilters] = useState<SearchFilters>({ xray: false, ct: false, cr: false, date: false });
@@ -30,8 +30,8 @@ export const useSearch = () => {
       setError(null);
 
       try {
-        const rawItems = await fetchSearchResults(selectedFilters, startDate, endDate);
-        const normalizedItems = rawItems.map((item, index) => normalizeStudyItem(item, index));
+        const rawItems = await fetchStudies(debouncedQuery, selectedFilters, startDate, endDate);
+        const normalizedItems = rawItems.map((item: Record<string, unknown>, index: number) => normalizeStudyItem(item, index));
         const enrichedItems = await enrichItemsWithPatientInfo(normalizedItems);
         setItems(enrichedItems);
       } catch (fetchError) {
@@ -43,7 +43,7 @@ export const useSearch = () => {
     };
 
     fetchResults();
-  }, [selectedFilters, startDate, endDate, normalizeStudyItem, enrichItemsWithPatientInfo]);
+  }, [debouncedQuery, selectedFilters, startDate, endDate]);
 
   const toggleFilter = (filter: keyof SearchFilters) => {
     setSelectedFilters(prev => {
@@ -60,6 +60,7 @@ export const useSearch = () => {
     setSelectedFilters({ xray: false, ct: false, cr: false, date: false });
     setStartDate('');
     setEndDate('');
+    setQuery('');
   };
 
   const handleSelectItem = async (item: StudyItem) => {
@@ -92,32 +93,10 @@ export const useSearch = () => {
     selectedFilters.cr ||
     selectedFilters.date ||
     startDate !== '' ||
-    endDate !== '';
+    endDate !== '' ||
+    query !== '';
 
-  const results = useMemo(() => {
-    const queryTerm = debouncedQuery.trim().toLowerCase();
-    if (!queryTerm) return items;
-
-    return items.filter(item => {
-      const searchableText = [
-        item.title,
-        item.patientId,
-        item.patientName,
-        item.modality,
-        item.accessionNumber,
-        item.studyId,
-        item.institutionName,
-        item.requestingPhysician,
-        item.referringPhysicianName,
-        ...item.tags,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-
-      return searchableText.includes(queryTerm);
-    });
-  }, [items, debouncedQuery]);
+  const results = items;
 
   return {
     // State

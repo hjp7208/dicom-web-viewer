@@ -1,4 +1,4 @@
-import { StudyItem, PatientInfo } from '@/features/search/types';
+import { StudyItem, PatientInfo } from '@/features/studies/types';
 
 export const fetchPatientInfo = async (patientId: string): Promise<PatientInfo | null> => {
   if (!patientId) {
@@ -46,13 +46,17 @@ export const enrichItemsWithPatientInfo = async (studyItems: StudyItem[]): Promi
   });
 };
 
-export const fetchSearchResults = async (
+export const fetchStudies = async (
+  query: string,
   selectedFilters: { xray: boolean; ct: boolean; cr: boolean; date: boolean },
   startDate: string,
   endDate: string
-): Promise<StudyItem[]> => {
+): Promise<Record<string, unknown>[]> => {
   const params = new URLSearchParams();
   
+  if (query.trim()) {
+    params.set('keyword', query.trim());
+  }
   if (selectedFilters.xray && !selectedFilters.ct && !selectedFilters.cr) {
     params.set('modality', 'x-ray');
   }
@@ -69,7 +73,10 @@ export const fetchSearchResults = async (
     params.set('to', endDate);
   }
 
-  const response = await fetch(`/api/search?${params.toString()}`, { cache: 'no-store' });
+  const queryString = params.toString();
+  const url = queryString ? `/api/studies?${queryString}` : '/api/studies';
+
+  const response = await fetch(url, { cache: 'no-store' });
   if (!response.ok) {
     throw new Error(`서버 오류: ${response.status}`);
   }

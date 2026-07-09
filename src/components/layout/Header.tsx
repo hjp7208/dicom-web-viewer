@@ -17,7 +17,7 @@ export default function Header() {
 
     const navItems = [
         { href: '/', label: '뷰어' },
-        { href: '/search', label: '검색' },
+        { href: '/studies', label: '검색' },
         { href: '/admin/dashboard', label: '대시보드' },
     ];
 
