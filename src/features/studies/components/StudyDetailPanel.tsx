@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { StudyItem } from '@/features/studies/types';
+import Link from 'next/link';
 
 interface StudyDetailPanelProps {
   activeItem: StudyItem | null;
@@ -101,6 +102,24 @@ export default function StudyDetailPanel({ activeItem, onClose }: StudyDetailPan
               </div>
             ))}
           </div>
+        </div>
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3 rounded-b-2xl">
+          <button
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-lg text-slate-600 font-medium hover:bg-slate-200 transition-colors"
+          >
+            닫기
+          </button>
+          <Link
+            href={`/?studyId=${activeItem.id}`}
+            className="px-5 py-2.5 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 shadow-md shadow-indigo-200 transition-all active:scale-95 flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            뷰어로 열기
+          </Link>
         </div>
       </div>
     </div>
