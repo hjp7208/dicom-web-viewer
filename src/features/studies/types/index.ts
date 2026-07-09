@@ -18,6 +18,7 @@ export interface StudyItem {
   patientSex: string;
   patientOtherIds: string;
   notes: string;
+  imageCount: number;
 }
 
 export interface PatientInfo {

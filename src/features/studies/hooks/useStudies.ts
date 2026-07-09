@@ -1,9 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
-import { StudyItem, SearchFilters } from '@/features/search/types';
-import { fetchSearchResults, enrichItemsWithPatientInfo, fetchPatientInfo } from '@/features/search/api/searchApi';
-import { normalizeStudyItem } from '@/features/search/utils/dataNormalizer';
+import { useEffect, useState } from 'react';
+import { StudyItem, SearchFilters } from '@/features/studies/types';
+import { fetchStudies, enrichItemsWithPatientInfo, fetchPatientInfo } from '@/features/studies/api/studiesApi';
+import { normalizeStudyItem } from '@/features/studies/utils/dataNormalizer';
 
-export const useSearch = () => {
+/**
+ * DICOM 검사 목록 검색 및 필터링 상태 관리를 담당하는 커스텀 훅
+ * 검색어 디바운싱, 데이터 패칭, 상세 정보 조회 로직을 포함합니다.
+ */
+export const useStudies = () => {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const [selectedFilters, setSelectedFilters] = useState<SearchFilters>({ xray: false, ct: false, cr: false, date: false });
@@ -14,7 +18,7 @@ export const useSearch = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Debounce query
+  // 검색어 입력 시 300ms 지연 후 디바운스된 상태 업데이트 (불필요한 API 호출 방지)
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setDebouncedQuery(query);
@@ -23,15 +27,15 @@ export const useSearch = () => {
     return () => window.clearTimeout(timer);
   }, [query]);
 
-  // Fetch search results
+  // 검색 조건(디바운스된 검색어, 필터, 날짜)이 변경될 때마다 검사 목록 데이터를 다시 불러옵니다.
   useEffect(() => {
     const fetchResults = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const rawItems = await fetchSearchResults(selectedFilters, startDate, endDate);
-        const normalizedItems = rawItems.map((item, index) => normalizeStudyItem(item, index));
+        const rawItems = await fetchStudies(debouncedQuery, selectedFilters, startDate, endDate);
+        const normalizedItems = rawItems.map((item: Record<string, unknown>, index: number) => normalizeStudyItem(item, index));
         const enrichedItems = await enrichItemsWithPatientInfo(normalizedItems);
         setItems(enrichedItems);
       } catch (fetchError) {
@@ -43,8 +47,12 @@ export const useSearch = () => {
     };
 
     fetchResults();
-  }, [selectedFilters, startDate, endDate, normalizeStudyItem, enrichItemsWithPatientInfo]);
+  }, [debouncedQuery, selectedFilters, startDate, endDate]);
 
+  /**
+   * 개별 모달리티 필터를 토글합니다.
+   * Date 필터를 해제할 경우 시작/종료 날짜도 초기화합니다.
+   */
   const toggleFilter = (filter: keyof SearchFilters) => {
     setSelectedFilters(prev => {
       const next = { ...prev, [filter]: !prev[filter] };
@@ -56,12 +64,20 @@ export const useSearch = () => {
     });
   };
 
+  /**
+   * 모든 필터 및 검색 조건을 초기 상태로 되돌립니다.
+   */
   const resetFilters = () => {
     setSelectedFilters({ xray: false, ct: false, cr: false, date: false });
     setStartDate('');
     setEndDate('');
+    setQuery('');
   };
 
+  /**
+   * 검사 항목을 클릭하여 활성화(모달 등)하고,
+   * 필요한 경우 환자 상세 정보를 추가로 패칭하여 상태를 업데이트합니다.
+   */
   const handleSelectItem = async (item: StudyItem) => {
     setActiveItem(item);
 
@@ -92,32 +108,10 @@ export const useSearch = () => {
     selectedFilters.cr ||
     selectedFilters.date ||
     startDate !== '' ||
-    endDate !== '';
+    endDate !== '' ||
+    query !== '';
 
-  const results = useMemo(() => {
-    const queryTerm = debouncedQuery.trim().toLowerCase();
-    if (!queryTerm) return items;
-
-    return items.filter(item => {
-      const searchableText = [
-        item.title,
-        item.patientId,
-        item.patientName,
-        item.modality,
-        item.accessionNumber,
-        item.studyId,
-        item.institutionName,
-        item.requestingPhysician,
-        item.referringPhysicianName,
-        ...item.tags,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-
-      return searchableText.includes(queryTerm);
-    });
-  }, [items, debouncedQuery]);
+  const results = items;
 
   return {
     // State

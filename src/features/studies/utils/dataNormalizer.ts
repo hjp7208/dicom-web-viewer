@@ -1,4 +1,4 @@
-import { StudyItem } from '@/features/search/types';
+import { StudyItem } from '@/features/studies/types';
 
 export const normalizeStudyItem = (item: Record<string, unknown>, index: number): StudyItem => {
   const raw = item;
@@ -27,16 +27,17 @@ export const normalizeStudyItem = (item: Record<string, unknown>, index: number)
     studyDate: String(studyDateValue ?? dateValue ?? ''),
     studyTime: String(getValue('studyTime') ?? getValue('study_time') ?? ''),
     accessionNumber: String(getValue('accessionNumber') ?? getValue('accession_number') ?? ''),
-    studyId: String(getValue('studyId') ?? getValue('study_instance_uid') ?? getValue('studyInstanceUid') ?? ''),
-    studyInstance: String(getValue('studyInstance') ?? getValue('study_instance') ?? ''),
+    studyId: String(getValue('studyId') ?? getValue('id') ?? ''),
+    studyInstance: String(getValue('studyInstanceUid') ?? getValue('studyInstance') ?? ''),
     requestingPhysician: String(getValue('requestingPhysician') ?? getValue('requesting_physician') ?? ''),
     referringPhysicianName: String(getValue('referringPhysicianName') ?? getValue('referring_physician_name') ?? ''),
     institutionName: String(getValue('institutionName') ?? getValue('institution_name') ?? ''),
-    patientId: String(getValue('patientId') ?? getValue('patient_id') ?? ''),
-    patientName: String(getValue('patientName') ?? getValue('patient_name') ?? ''),
-    patientBirthDate: String(getValue('patientBirthDate') ?? getValue('patient_birth_date') ?? ''),
-    patientSex: String(getValue('patientSex') ?? getValue('patient_sex') ?? ''),
+    patientId: String(getValue('patientId') ?? ''),
+    patientName: String(getValue('patientName') ?? ''),
+    patientBirthDate: String(getValue('patientBirthDate') ?? ''),
+    patientSex: String(getValue('patientSex') ?? ''),
     patientOtherIds: String(getValue('patientOtherIds') ?? getValue('patient_other_ids') ?? ''),
     notes: String(getValue('notes') ?? getValue('description') ?? getValue('studyDescription') ?? ''),
+    imageCount: Number(getValue('imageCount') ?? 0),
   };
 };
