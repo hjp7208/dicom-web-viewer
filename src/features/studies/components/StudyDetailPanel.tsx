@@ -8,6 +8,10 @@ interface StudyDetailPanelProps {
   onClose: () => void;
 }
 
+/**
+ * 선택된 검사 항목의 상세 정보를 모달 형태로 표시하는 패널 컴포넌트입니다.
+ * 필요한 경우 /api/studies/{id}/metadata 엔드포인트를 호출하여 추가 메타데이터를 가져오고 결합합니다.
+ */
 export default function StudyDetailPanel({ activeItem, onClose }: StudyDetailPanelProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [metadata, setMetadata] = useState<any>(null);
@@ -36,7 +40,7 @@ export default function StudyDetailPanel({ activeItem, onClose }: StudyDetailPan
 
   if (!activeItem) return null;
 
-  // Merge activeItem with fetched metadata or mock data
+  // 선택된 항목의 기본 데이터와 패칭된 메타데이터를 병합합니다. (데이터가 없을 시 임시 Mock 데이터 사용)
   const mergedData = {
     studyDate: activeItem.studyDate || metadata?.study?.date || '-',
     studyTime: activeItem.studyTime || metadata?.study?.time || '-',

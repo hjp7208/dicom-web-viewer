@@ -9,6 +9,11 @@ import StudyList from '@/features/studies/components/StudyList';
 import StudyDetailPanel from '@/features/studies/components/StudyDetailPanel';
 import Header from "@/components/layout/Header";
 
+/**
+ * DICOM 검사 목록 검색 페이지 컴포넌트
+ * 필터(모달리티, 날짜), 검색바, 검색 결과 목록, 상세 정보 패널을 통합하여 제공합니다.
+ * 내부 상태 및 데이터 패칭은 useStudies 커스텀 훅을 통해 관리됩니다.
+ */
 export default function SearchPage() {
   const {
     query,
