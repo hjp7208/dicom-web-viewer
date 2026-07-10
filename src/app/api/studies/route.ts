@@ -39,13 +39,14 @@ export async function GET(request: NextRequest) {
     let data;
     try {
       data = JSON.parse(text);
-    } catch (e) {
+    } catch {
       console.error('Failed to parse JSON response from backend:', text);
       return new NextResponse(text, { status: response.status || 500 });
     }
     return NextResponse.json(data, { status: response.status });
-  } catch (error: any) {
-    console.error('Fetch error in /api/studies/route.ts:', error);
-    return NextResponse.json({ message: 'Internal Server Error', error: error.message }, { status: 500 });
+  } catch (error) {
+    const err = error as Error;
+    console.error('Fetch error in /api/studies/route.ts:', err);
+    return NextResponse.json({ message: 'Internal Server Error', error: err.message }, { status: 500 });
   }
 }

@@ -2,8 +2,10 @@ import { create } from 'zustand';
 import { SeriesData } from '../utils/dicomParserUtil';
 
 export interface AiResult {
-  id: number;
+  id: number | string;
   sliceIndex: number;
+  thumbnailUrl?: string;
+  findings?: string;
   lesion: {
     x: number;
     y: number;

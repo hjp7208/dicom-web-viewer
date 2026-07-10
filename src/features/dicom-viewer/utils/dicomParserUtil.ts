@@ -198,7 +198,7 @@ export const parseDicomFiles = async (
           };
 
           finish(meta);
-        } catch (error) {
+        } catch {
           // Suppress error logs for non-dicom files (e.g. ReadMe.txt, .pptx)
           finish(null);
         }
