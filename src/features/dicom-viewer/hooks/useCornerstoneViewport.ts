@@ -231,10 +231,25 @@ export const useCornerstoneViewport = ({
         };
 
         const handleImageRendered = () => updateOverlay();
+        
+        let isInitialResize = true;
         const resizeObserver = new ResizeObserver(() => {
           const engine = cornerstone.getRenderingEngine(renderingEngineId);
           if (engine) {
             engine.resize(true, false);
+            
+            const vp = engine.getViewport(viewportId) as cornerstone.Types.IStackViewport;
+            if (vp && viewerRef.current && viewerRef.current.clientWidth > 0) {
+              const currentZoom = typeof vp.getZoom === 'function' ? vp.getZoom() : 1;
+              // 처음에 크기가 0이었다가 정상 크기로 변하거나, 비정상적으로 줌이 0일 때 리셋
+              if (isInitialResize || currentZoom === 0 || currentZoom < 0.001) {
+                vp.resetCamera();
+                vp.render();
+                updateViewportInfo();
+                isInitialResize = false;
+              }
+            }
+            
             requestAnimationFrame(() => updateOverlay());
           }
         });
