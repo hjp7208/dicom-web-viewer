@@ -61,14 +61,6 @@ interface StudyMetadataResponse {
   seriesList?: StudyMetadataSeries[];
 }
 
-const toAbsoluteUrl = (url: string) => {
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url;
-  }
-
-  return `${window.location.origin}${url.startsWith('/') ? url : `/${url}`}`;
-};
-
 export default function ViewerLayout({ studyId }: { studyId?: string }) {
   const { 
     setLoadedSeries, 
@@ -105,10 +97,10 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
         }
 
         // 1. 직접 SeriesData 배열 생성 (Blob 변환 및 파일 생성 오버헤드 제거)
-        const newLoadedSeries: SeriesData[] = data.seriesList.map((series: any) => {
-          const sortedInstances = (series.instances || []).sort((a: any, b: any) => a.instanceNumber - b.instanceNumber);
+        const newLoadedSeries: SeriesData[] = data.seriesList.map((series: StudyMetadataSeries) => {
+          const sortedInstances = (series.instances || []).sort((a: StudyMetadataInstance, b: StudyMetadataInstance) => (a.instanceNumber || 0) - (b.instanceNumber || 0));
           
-          const files = sortedInstances.map((inst: any) => ({
+          const files = sortedInstances.map((inst: StudyMetadataInstance) => ({
             file: new File([], inst.sopInstanceUid || 'dummy.dcm'), // 메모리를 차지하지 않는 빈 파일 객체
             patient: {
               name: data.patient?.name || '',
@@ -152,7 +144,7 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
           }));
 
           // Cornerstone에서 지연 로딩(Lazy Loading)을 위해 wadouri scheme 사용
-          const imageIds = sortedInstances.map((inst: any) => `wadouri:${inst.pixelDataUrl}`);
+          const imageIds = sortedInstances.map((inst: StudyMetadataInstance) => `wadouri:${inst.pixelDataUrl}`);
 
           return {
             seriesUID: series.seriesInstanceUid || 'unknown_series',
