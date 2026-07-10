@@ -44,5 +44,8 @@ next-env.d.ts
 /orthanc-db/
 /.agents/
 
+# Stakpak session files
+.stakpak/session*
+
 # GEMINI.md
 GEMINI.md
