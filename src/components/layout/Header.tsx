@@ -64,13 +64,12 @@ export default function Header() {
                 </nav>
             </div>
 
-            {/* Profile Placeholder */}
             <div className="flex items-center">
                 <div
-                    className={`w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 shadow-sm border cursor-pointer hover:opacity-80 transition-opacity ${
+                    className={`w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-cyan-400 shadow-sm border cursor-pointer hover:opacity-80 transition-opacity ${
                         isDashboard ? "border-gray-200" : "border-neutral-700"
                     }`}
-                ></div>
+                />
             </div>
         </header>
     );

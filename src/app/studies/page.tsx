@@ -1,19 +1,29 @@
 "use client";
 
-import { useStudies } from '@/features/studies/hooks/useStudies';
-import FilterPanel from '@/features/studies/components/FilterPanel';
-import SearchBar from '@/features/studies/components/SearchBar';
+import { useMemo, useState } from 'react';
+import { CalendarDays, Grid2X2, List, SlidersHorizontal } from 'lucide-react';
+import Header from '@/components/layout/Header';
 import DateRangePicker from '@/features/studies/components/DateRangePicker';
 import ErrorMessage from '@/features/studies/components/ErrorMessage';
-import StudyList from '@/features/studies/components/StudyList';
+import FilterPanel from '@/features/studies/components/FilterPanel';
+import SearchBar from '@/features/studies/components/SearchBar';
 import StudyDetailPanel from '@/features/studies/components/StudyDetailPanel';
-import Header from "@/components/layout/Header";
+import StudyList from '@/features/studies/components/StudyList';
+import { useStudies } from '@/features/studies/hooks/useStudies';
+import { StudyItem } from '@/features/studies/types';
 
-/**
- * DICOM 검사 목록 검색 페이지 컴포넌트
- * 필터(모달리티, 날짜), 검색바, 검색 결과 목록, 상세 정보 패널을 통합하여 제공합니다.
- * 내부 상태 및 데이터 패칭은 useStudies 커스텀 훅을 통해 관리됩니다.
- */
+type ViewMode = 'grid' | 'list';
+
+const formatStudyDate = (value: string) => {
+  if (!value) return '-';
+  if (/^\d{8}$/.test(value)) {
+    return `${value.slice(0, 4)}.${value.slice(4, 6)}.${value.slice(6, 8)}`;
+  }
+  return value.replaceAll('-', '.');
+};
+
+const getStudyDateValue = (item: StudyItem) => item.studyDate || item.date || '';
+
 export default function SearchPage() {
   const {
     query,
@@ -34,42 +44,151 @@ export default function SearchPage() {
     handleSelectItem,
   } = useStudies();
 
-  return (
-    <div className="min-h-screen bg-slate-300 text-slate-900 flex flex-col">
-      <Header />
-      <div className="flex-1 px-6 py-6">
-        <div className="mx-auto w-full max-w-6xl">
-          <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <FilterPanel
-              selectedFilters={selectedFilters}
-              onToggleFilter={toggleFilter}
-              onResetFilters={resetFilters}
-              hasActiveFilters={hasActiveFilters}
-            />
-          </div>
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
-          {selectedFilters.date && (
-            <DateRangePicker
-              startDate={startDate}
-              endDate={endDate}
-              onStartDateChange={setStartDate}
-              onEndDateChange={setEndDate}
-            />
-          )}
+  const modalitySummary = useMemo(() => {
+    return results.reduce<Record<string, number>>((acc, item) => {
+      const key = (item.modality || item.tags[0] || '기타').toUpperCase();
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+  }, [results]);
+
+  const latestStudy = useMemo(() => {
+    return results.reduce<StudyItem | null>((latest, item) => {
+      if (!latest) return item;
+      return getStudyDateValue(item).localeCompare(getStudyDateValue(latest)) > 0 ? item : latest;
+    }, null);
+  }, [results]);
+
+  const latestDate = latestStudy ? formatStudyDate(getStudyDateValue(latestStudy)) : '-';
+  const totalImages = results.reduce((sum, item) => sum + (Number(item.imageCount) || 0), 0);
+  const filterCount = Object.values(selectedFilters).filter(Boolean).length + (query ? 1 : 0);
+
+  return (
+    <div className="min-h-screen bg-[#eef3f8] text-slate-950">
+      <Header />
+
+      <main className="px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
+          <section className="overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-sm">
+            <div className="grid gap-6 bg-[radial-gradient(circle_at_10%_20%,rgba(59,130,246,0.14),transparent_28%),linear-gradient(135deg,#ffffff_0%,#f7fbff_55%,#e9f2ff_100%)] p-5 sm:p-7 lg:grid-cols-[1fr_360px] lg:p-8">
+              <div className="flex min-w-0 flex-col justify-between gap-6">
+                <div>
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                    <SlidersHorizontal className="h-3.5 w-3.5" />
+                    Studies Search
+                  </div>
+                  <h1 className="text-3xl font-bold tracking-normal text-slate-950 sm:text-4xl">
+                    검사 목록을 빠르게 찾고 확인하세요
+                  </h1>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+                    환자명, 검사 ID, 모달리티, 날짜 조건을 한 곳에서 조합해 필요한 DICOM 검사를 정리합니다.
+                  </p>
+                </div>
+
+                <SearchBar query={query} onQueryChange={setQuery} />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+                <div className="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-sm">
+                  <p className="text-xs font-semibold uppercase text-slate-500">Results</p>
+                  <p className="mt-2 text-3xl font-bold text-slate-950">{results.length}</p>
+                </div>
+                <div className="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-sm">
+                  <p className="text-xs font-semibold uppercase text-slate-500">Images</p>
+                  <p className="mt-2 text-3xl font-bold text-slate-950">{totalImages}</p>
+                </div>
+                <div className="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-sm">
+                  <p className="text-xs font-semibold uppercase text-slate-500">Latest</p>
+                  <p className="mt-2 flex items-center gap-2 text-lg font-bold text-slate-950">
+                    <CalendarDays className="h-5 w-5 text-blue-600" />
+                    {latestDate}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <FilterPanel
+                selectedFilters={selectedFilters}
+                onToggleFilter={toggleFilter}
+                onResetFilters={resetFilters}
+                hasActiveFilters={hasActiveFilters}
+              />
+
+              <div className="flex h-10 w-fit rounded-lg border border-slate-200 bg-slate-50 p-1">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('grid')}
+                  aria-label="그리드 보기"
+                  className={`grid h-8 w-9 place-items-center rounded-md transition ${
+                    viewMode === 'grid' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  <Grid2X2 className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  aria-label="리스트 보기"
+                  className={`grid h-8 w-9 place-items-center rounded-md transition ${
+                    viewMode === 'list' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  <List className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {selectedFilters.date && (
+              <div className="mt-4">
+                <DateRangePicker
+                  startDate={startDate}
+                  endDate={endDate}
+                  onStartDateChange={setStartDate}
+                  onEndDateChange={setEndDate}
+                />
+              </div>
+            )}
+          </section>
 
           {error && <ErrorMessage message={error} />}
 
-          <div className="mb-6">
-            <SearchBar query={query} onQueryChange={setQuery} />
-          </div>
+          <section className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">검색 결과</p>
+                <p className="text-xs text-slate-500">
+                  {filterCount > 0 ? `${filterCount}개 조건 적용 중` : '전체 검사 목록을 표시 중입니다'}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(modalitySummary).slice(0, 5).map(([modality, count]) => (
+                  <span
+                    key={modality}
+                    className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600"
+                  >
+                    {modality} {count}
+                  </span>
+                ))}
+              </div>
+            </div>
 
-          <StudyList items={results} loading={loading} onItemClick={handleSelectItem} />
-
-          {activeItem && (
-            <StudyDetailPanel activeItem={activeItem} onClose={() => setActiveItem(null)} />
-          )}
+            <StudyList
+              items={results}
+              loading={loading}
+              onItemClick={handleSelectItem}
+              selectedItemId={activeItem?.id}
+              viewMode={viewMode}
+            />
+          </section>
         </div>
-      </div>
+      </main>
+
+      {activeItem && <StudyDetailPanel activeItem={activeItem} onClose={() => setActiveItem(null)} />}
     </div>
   );
 }

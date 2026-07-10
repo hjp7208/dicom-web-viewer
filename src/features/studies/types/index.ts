@@ -34,6 +34,7 @@ export interface SearchFilters {
   xray: boolean;
   ct: boolean;
   cr: boolean;
+  dx: boolean;
   date: boolean;
 }
 
