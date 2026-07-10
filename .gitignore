@@ -52,3 +52,8 @@ GEMINI.md
 
 # .js
 *.js
+# Temporary API responses
+metadata*.json
+studies.json
+*.tmp.json
+tmp/

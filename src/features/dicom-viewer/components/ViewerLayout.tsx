@@ -8,7 +8,6 @@ import DicomViewer from './DicomViewer';
 import Header from '@/components/layout/Header';
 import ReportModal from './ReportModal';
 import { useViewerStore } from '../store/useViewerStore';
-import { generateMockAiResults } from '../utils/fileUploadUtil';
 import { SeriesData } from '../utils/dicomParserUtil';
 import initCornerstone from '../../../lib/cornerstoneInit';
 
@@ -21,7 +20,8 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
     setActiveSeriesUID, 
     setCurrentSeriesName, 
     setTotalSlices, 
-    setAiResults 
+    setAiResults,
+    resetViewer
   } = useViewerStore();
   
   const [isLoadingStudy, setIsLoadingStudy] = useState(false);
@@ -30,6 +30,7 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
     if (!studyId) return;
 
     const loadStudyData = async () => {
+      resetViewer();
       setIsLoadingStudy(true);
       try {
         const response = await fetch(`/api/studies/${studyId}/metadata`);
@@ -112,23 +113,60 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
         // 2. Cornerstone 초기화 및 상태 업데이트
         await initCornerstone();
         
-        const mergedSeries = [...loadedSeries];
-        newLoadedSeries.forEach(ns => {
-          if (!mergedSeries.find(s => s.seriesUID === ns.seriesUID)) {
-            mergedSeries.push(ns);
-          }
-        });
-
-        setLoadedSeries(mergedSeries);
+        setLoadedSeries(newLoadedSeries);
 
         if (newLoadedSeries.length > 0) {
-          const firstSeries = newLoadedSeries[0];
-          setViewportSeriesMap(activeViewportId, firstSeries.seriesUID);
-          setActiveSeriesUID(firstSeries.seriesUID);
-          setCurrentSeriesName(firstSeries.series.seriesDescription);
-          setTotalSlices(firstSeries.imageIds.length);
+          // 메인 시리즈 찾기 (SC, SR 등 분석 결과가 아닌 원본 영상 시리즈)
+          // 여러 개가 있다면 이미지가 가장 많은 시리즈를 메인으로 간주
+          const mainSeries = newLoadedSeries
+            .filter(s => s.series.modality !== 'SC' && s.series.modality !== 'SR')
+            .sort((a, b) => b.imageIds.length - a.imageIds.length)[0] || newLoadedSeries[0];
+
+          setViewportSeriesMap(activeViewportId, mainSeries.seriesUID);
+          setActiveSeriesUID(mainSeries.seriesUID);
+          setCurrentSeriesName(mainSeries.series.seriesDescription || mainSeries.series.modality);
+          setTotalSlices(mainSeries.imageIds.length);
           
-          setAiResults(firstSeries.seriesUID, generateMockAiResults(firstSeries.imageIds.length));
+          // 실제 AI 결과 서버에서 가져오기
+          try {
+            const configRes = await fetch('/api/dicom/config');
+            let authHeader = '';
+            // @ts-expect-error - Custom window property for DICOM base URL
+            let baseUrl = window.__DICOM_BASE_URL__ || '';
+            if (configRes.ok) {
+              const configData = await configRes.json();
+              authHeader = configData.auth || '';
+              if (configData.baseUrl) baseUrl = configData.baseUrl;
+            }
+            
+            const reportRes = await fetch(`${baseUrl}/api/reports/${studyId}`, {
+              headers: authHeader ? { 'Authorization': authHeader } : {}
+            });
+            
+            if (reportRes.ok) {
+              const reportData = await reportRes.json();
+              if (reportData.scKey) {
+                // S3키(또는 경로)를 preview API에 넘겨 PNG 썸네일을 받아옴
+                const previewUrl = `${baseUrl}/api/ai/preview?path=${encodeURIComponent(reportData.scKey)}`;
+                // 실제 데이터를 스토어에 세팅
+                const realAiResult = {
+                  id: reportData.id.toString(),
+                  sliceIndex: 0, 
+                  thumbnailUrl: previewUrl,
+                  lesion: { x: 0, y: 0, width: 0, height: 0 }, // 현재 백엔드 API에 좌표가 없다면 임시 숨김 처리
+                  findings: reportData.aiResultJson || '결과'
+                };
+                setAiResults(mainSeries.seriesUID, [realAiResult]);
+              } else {
+                setAiResults(mainSeries.seriesUID, []);
+              }
+            } else {
+              setAiResults(mainSeries.seriesUID, []);
+            }
+          } catch (e) {
+            console.error("AI 결과 로드 실패:", e);
+            setAiResults(mainSeries.seriesUID, []);
+          }
         }
 
       } catch (error) {
