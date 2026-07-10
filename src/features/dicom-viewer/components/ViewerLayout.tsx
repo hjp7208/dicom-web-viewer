@@ -12,6 +12,64 @@ import { generateMockAiResults } from '../utils/fileUploadUtil';
 import { SeriesData } from '../utils/dicomParserUtil';
 import initCornerstone from '../../../lib/cornerstoneInit';
 
+interface StudyMetadataInstance {
+  sopInstanceUid?: string;
+  instanceNumber?: number;
+  rows?: number;
+  columns?: number;
+  pixelSpacing?: number[];
+  windowWidth?: number;
+  windowLevel?: number;
+  rescaleSlope?: number;
+  rescaleIntercept?: number;
+  imageOrientation?: number[];
+  sliceLocation?: number;
+  pixelDataUrl?: string;
+}
+
+interface StudyMetadataSeries {
+  seriesInstanceUid?: string;
+  seriesNumber?: number;
+  seriesDescription?: string;
+  modality?: string;
+  modalitySpecific?: {
+    imageLaterality?: string;
+    viewPosition?: string;
+    bodyPartExamined?: string;
+    sliceThickness?: number;
+  };
+  instances?: StudyMetadataInstance[];
+}
+
+interface StudyMetadataResponse {
+  studyInstanceUid?: string;
+  patient?: {
+    name?: string;
+    id?: string;
+    sex?: string;
+    birthDate?: string;
+    age?: string;
+  };
+  study?: {
+    id?: string;
+    date?: string;
+    time?: string;
+    description?: string;
+    accessionNumber?: string;
+    referringPhysicianName?: string;
+    institutionName?: string;
+  };
+  seriesList?: StudyMetadataSeries[];
+}
+
+const toAbsoluteUrl = (url: string) => {
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+
+  return `${window.location.origin}${url.startsWith('/') ? url : `/${url}`}`;
+};
+
 export default function ViewerLayout({ studyId }: { studyId?: string }) {
   const { 
     loadedSeries, 
@@ -38,7 +96,7 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
           return;
         }
 
-        const data = await response.json();
+        const data = (await response.json()) as StudyMetadataResponse;
         
         if (!data.seriesList || data.seriesList.length === 0) {
           console.warn("No DICOM series found in the study data");
@@ -47,10 +105,12 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
         }
 
         // 1. 직접 SeriesData 배열 생성 (Blob 변환 및 파일 생성 오버헤드 제거)
-        const newLoadedSeries: SeriesData[] = data.seriesList.map((series: any) => {
-          const sortedInstances = (series.instances || []).sort((a: any, b: any) => a.instanceNumber - b.instanceNumber);
+        const newLoadedSeries: SeriesData[] = data.seriesList.map((series) => {
+          const sortedInstances = [...(series.instances || [])].sort(
+            (a, b) => (a.instanceNumber || 0) - (b.instanceNumber || 0),
+          );
           
-          const files = sortedInstances.map((inst: any) => ({
+          const files = sortedInstances.map((inst) => ({
             file: new File([], inst.sopInstanceUid || 'dummy.dcm'), // 메모리를 차지하지 않는 빈 파일 객체
             patient: {
               name: data.patient?.name || '',
@@ -94,7 +154,10 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
           }));
 
           // Cornerstone에서 지연 로딩(Lazy Loading)을 위해 wadouri scheme 사용
-          const imageIds = sortedInstances.map((inst: any) => `wadouri:${inst.pixelDataUrl}`);
+          const imageIds = sortedInstances
+            .map((inst) => inst.pixelDataUrl)
+            .filter((url): url is string => Boolean(url))
+            .map((url) => `wadouri:${toAbsoluteUrl(url)}`);
 
           return {
             seriesUID: series.seriesInstanceUid || 'unknown_series',

@@ -19,9 +19,9 @@ const buildAuthHeader = () => {
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: { studyId: string } },
 ) {
-  const { id: studyId } = params;
+  const { studyId } = params;
 
   // 실제 백엔드 연동
   if (!BACKEND_BASE_URL) {
