@@ -16,9 +16,36 @@ export default async function initCornerstone() {
   // Cornerstone Tools Initialization
   await cornerstoneTools.init();
 
+  // 백엔드 직접 프록시 다운로드를 위한 Authorization 헤더 가져오기
+  let authHeader = '';
+  try {
+    const configRes = await fetch('/api/dicom/config');
+    if (configRes.ok) {
+      const configData = await configRes.json();
+      if (configData.auth) {
+        authHeader = configData.auth;
+      }
+      if (configData.baseUrl) {
+        // @ts-expect-error - Custom window property for direct download
+        window.__DICOM_BASE_URL__ = configData.baseUrl;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load dicom auth header', err);
+  }
+
   // Initialize the image loader with its default configuration
+  // 최신 버전의 Cornerstone에서는 configure 대신 init()의 옵션으로 beforeSend를 전달합니다.
   cornerstoneDICOMImageLoader.init({
     maxWebWorkers: navigator.hardwareConcurrency ? Math.min(navigator.hardwareConcurrency, 7) : 1,
+    beforeSend: function (xhr: XMLHttpRequest, imageId: string) {
+      // S3 Pre-signed URL로 전환될 경우 대비 (S3 URL에는 Authorization 헤더가 들어가면 에러 발생)
+      const isS3Url = imageId && (imageId.includes('X-Amz-Signature') || imageId.includes('s3.amazonaws.com') || imageId.includes('s3.ap-northeast-2.amazonaws.com'));
+      
+      if (authHeader && !isS3Url) {
+        xhr.setRequestHeader('Authorization', authHeader);
+      }
+    }
   });
 
   // Override dicomfile image loader

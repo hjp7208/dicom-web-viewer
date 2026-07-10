@@ -109,7 +109,7 @@ export const useCornerstoneViewport = ({
         if (!renderingEngine) {
           try {
             renderingEngine = new cornerstone.RenderingEngine(renderingEngineId);
-          } catch (e) {
+          } catch {
             renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
           }
         }

@@ -87,20 +87,30 @@ export default function AIResultSidebar() {
               currentAiIdx === idx ? 'border-red-500' : 'border-neutral-700 hover:border-neutral-500'
             }`}
           >
-            {/* Mock Thumbnail Image text */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-neutral-500 pointer-events-none p-4 text-center">
-              <span className="text-xl font-bold text-neutral-400 mb-2">추론 png</span>
-              <span className="text-sm">(대표 슬라이스 {result.sliceIndex + 1})</span>
-              <span className="text-xs mt-2">클릭 시 이동</span>
-            </div>
+            {/* Real Thumbnail Image or Fallback */}
+            {result.thumbnailUrl ? (
+              <img 
+                src={result.thumbnailUrl} 
+                alt="AI Thumbnail" 
+                className="absolute inset-0 w-full h-full object-cover" 
+              />
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-neutral-500 pointer-events-none p-4 text-center">
+                <span className="text-xl font-bold text-neutral-400 mb-2">추론 png</span>
+                <span className="text-sm">(대표 슬라이스 {result.sliceIndex + 1})</span>
+                <span className="text-xs mt-2">클릭 시 이동</span>
+              </div>
+            )}
             {/* Red box mock in thumbnail */}
-            <div 
-              className="absolute border border-red-500 bg-red-500/20 pointer-events-none"
-              style={{
-                left: result.lesion.x, top: result.lesion.y, 
-                width: result.lesion.width, height: result.lesion.height
-              }}
-            />
+            {result.lesion.width > 0 && (
+              <div 
+                className="absolute border border-red-500 bg-red-500/20 pointer-events-none"
+                style={{
+                  left: result.lesion.x, top: result.lesion.y, 
+                  width: result.lesion.width, height: result.lesion.height
+                }}
+              />
+            )}
           </div>
         ))}
       </div>

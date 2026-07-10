@@ -18,3 +18,7 @@ frontend:
     paths:
       - node_modules/**/*
       - .next/cache/**/*
+customRules:
+  - source: /api/dicom/download
+    target: https://ksw1360.asia/api/dicom/download
+    status: '200'

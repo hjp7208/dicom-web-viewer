@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useViewerStore } from "@/features/dicom-viewer/store/useViewerStore";
 import { Loader2, Check } from "lucide-react";
 
@@ -112,15 +112,15 @@ ${memoText || "작성된 소견 메모가 없습니다."}
           {/* Metadata Grid */}
           <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm text-neutral-700 bg-neutral-50 p-4 rounded-lg">
             <div className="flex justify-between">
-              <span className="font-medium text-neutral-500">Patient's Name:</span>
+              <span className="font-medium text-neutral-500">Patient&apos;s Name:</span>
               <span>{metadata.patientName}</span>
             </div>
             <div className="flex justify-between">
-              <span className="font-medium text-neutral-500">Patient's DOB:</span>
+              <span className="font-medium text-neutral-500">Patient&apos;s DOB:</span>
               <span>{metadata.patientDOB}</span>
             </div>
             <div className="flex justify-between">
-              <span className="font-medium text-neutral-500">Patient's ID:</span>
+              <span className="font-medium text-neutral-500">Patient&apos;s ID:</span>
               <span>{metadata.patientId}</span>
             </div>
             <div className="flex justify-between">
@@ -128,7 +128,7 @@ ${memoText || "작성된 소견 메모가 없습니다."}
               <span>{metadata.studyDate}</span>
             </div>
             <div className="flex justify-between">
-              <span className="font-medium text-neutral-500">Patient's Sex:</span>
+              <span className="font-medium text-neutral-500">Patient&apos;s Sex:</span>
               <span>{metadata.patientSex}</span>
             </div>
             <div className="flex justify-between">
@@ -152,7 +152,7 @@ ${memoText || "작성된 소견 메모가 없습니다."}
                   AI 분석 결과가 없습니다.
                 </div>
               ) : (
-                currentAiResults.map((result, idx) => (
+                currentAiResults.map((result) => (
                   <div key={result.id} className="flex bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm">
                     {/* Mock Image Placeholder */}
                     <div className="w-48 h-48 bg-red-100 flex flex-col items-center justify-center shrink-0 border-r border-neutral-200 relative overflow-hidden">
