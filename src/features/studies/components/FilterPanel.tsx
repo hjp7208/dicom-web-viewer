@@ -5,9 +5,10 @@ interface FilterPanelProps {
     xray: boolean;
     ct: boolean;
     cr: boolean;
+    dx: boolean;
     date: boolean;
   };
-  onToggleFilter: (filter: 'xray' | 'ct' | 'cr' | 'date') => void;
+  onToggleFilter: (filter: 'xray' | 'ct' | 'cr' | 'dx' | 'date') => void;
   onResetFilters: () => void;
   hasActiveFilters: boolean;
 }
@@ -52,6 +53,17 @@ export default function FilterPanel({
         }`}
       >
         CR
+      </button>
+      <button
+        type="button"
+        onClick={() => onToggleFilter('dx')}
+        className={`rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition ${
+          selectedFilters.dx
+            ? 'border-slate-900 bg-slate-900 text-white'
+            : 'border-slate-400 bg-white text-slate-700 hover:border-slate-500'
+        }`}
+      >
+        DX
       </button>
       <button
         type="button"

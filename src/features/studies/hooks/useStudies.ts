@@ -10,7 +10,13 @@ import { normalizeStudyItem } from '@/features/studies/utils/dataNormalizer';
 export const useStudies = () => {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState(query);
-  const [selectedFilters, setSelectedFilters] = useState<SearchFilters>({ xray: false, ct: false, cr: false, date: false });
+  const [selectedFilters, setSelectedFilters] = useState<SearchFilters>({
+    xray: false,
+    ct: false,
+    cr: false,
+    dx: false,
+    date: false,
+  });
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [items, setItems] = useState<StudyItem[]>([]);
@@ -68,7 +74,7 @@ export const useStudies = () => {
    * 모든 필터 및 검색 조건을 초기 상태로 되돌립니다.
    */
   const resetFilters = () => {
-    setSelectedFilters({ xray: false, ct: false, cr: false, date: false });
+    setSelectedFilters({ xray: false, ct: false, cr: false, dx: false, date: false });
     setStartDate('');
     setEndDate('');
     setQuery('');
@@ -106,6 +112,7 @@ export const useStudies = () => {
     selectedFilters.xray ||
     selectedFilters.ct ||
     selectedFilters.cr ||
+    selectedFilters.dx ||
     selectedFilters.date ||
     startDate !== '' ||
     endDate !== '' ||

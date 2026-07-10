@@ -45,7 +45,7 @@ export default function StudyDetailPanel({ activeItem, onClose }: StudyDetailPan
   const mergedData = {
     studyDate: activeItem.studyDate || metadata?.study?.date || '-',
     studyTime: activeItem.studyTime || metadata?.study?.time || '-',
-    accessionNumber: activeItem.accessionNumber || metadata?.study?.accessionNumber || 'ACC-MOCK-001',
+    accessionNumber: activeItem.accessionNumber || metadata?.study?.accessionNumber || '-',
     studyId: activeItem.studyId || metadata?.study?.id || '-',
     studyInstance: activeItem.studyInstance || metadata?.studyInstanceUid || '-',
     requestingPhysician: activeItem.requestingPhysician || 'Dr. Mock Requesting',

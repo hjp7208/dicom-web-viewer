@@ -17,6 +17,8 @@ export const normalizeStudyItem = (item: Record<string, unknown>, index: number)
     : [];
 
   const titleValue = String(getValue('studyDescription') ?? getValue('title') ?? '').trim();
+  const accessionNumber = String(getValue('accessionNumber') ?? getValue('accession_number') ?? '').trim();
+  const fallbackAccessionNumber = `ACC-MOCK-${String(index + 1).padStart(3, '0')}`;
 
   return {
     id,
@@ -26,7 +28,7 @@ export const normalizeStudyItem = (item: Record<string, unknown>, index: number)
     date: String(studyDateValue ?? dateValue ?? ''),
     studyDate: String(studyDateValue ?? dateValue ?? ''),
     studyTime: String(getValue('studyTime') ?? getValue('study_time') ?? ''),
-    accessionNumber: String(getValue('accessionNumber') ?? getValue('accession_number') ?? ''),
+    accessionNumber: accessionNumber || fallbackAccessionNumber,
     studyId: String(getValue('studyId') ?? getValue('id') ?? ''),
     studyInstance: String(getValue('studyInstanceUid') ?? getValue('studyInstance') ?? ''),
     requestingPhysician: String(getValue('requestingPhysician') ?? getValue('requesting_physician') ?? ''),

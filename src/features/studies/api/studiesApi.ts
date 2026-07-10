@@ -48,7 +48,7 @@ export const enrichItemsWithPatientInfo = async (studyItems: StudyItem[]): Promi
 
 export const fetchStudies = async (
   query: string,
-  selectedFilters: { xray: boolean; ct: boolean; cr: boolean; date: boolean },
+  selectedFilters: { xray: boolean; ct: boolean; cr: boolean; dx: boolean; date: boolean },
   startDate: string,
   endDate: string
 ): Promise<Record<string, unknown>[]> => {
@@ -57,14 +57,17 @@ export const fetchStudies = async (
   if (query.trim()) {
     params.set('keyword', query.trim());
   }
-  if (selectedFilters.xray && !selectedFilters.ct && !selectedFilters.cr) {
+  if (selectedFilters.xray && !selectedFilters.ct && !selectedFilters.cr && !selectedFilters.dx) {
     params.set('modality', 'x-ray');
   }
-  if (selectedFilters.ct && !selectedFilters.xray && !selectedFilters.cr) {
+  if (selectedFilters.ct && !selectedFilters.xray && !selectedFilters.cr && !selectedFilters.dx) {
     params.set('modality', 'CT');
   }
-  if (selectedFilters.cr && !selectedFilters.xray && !selectedFilters.ct) {
+  if (selectedFilters.cr && !selectedFilters.xray && !selectedFilters.ct && !selectedFilters.dx) {
     params.set('modality', 'CR');
+  }
+  if (selectedFilters.dx && !selectedFilters.xray && !selectedFilters.ct && !selectedFilters.cr) {
+    params.set('modality', 'DX');
   }
   if (selectedFilters.date && startDate) {
     params.set('from', startDate);
