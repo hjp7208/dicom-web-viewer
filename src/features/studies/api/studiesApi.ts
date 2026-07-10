@@ -1,5 +1,13 @@
 import { StudyItem, PatientInfo } from '@/features/studies/types';
 
+type StudyFilters = {
+  xray: boolean;
+  ct: boolean;
+  cr: boolean;
+  dx: boolean;
+  date: boolean;
+};
+
 export const fetchPatientInfo = async (patientId: string): Promise<PatientInfo | null> => {
   if (!patientId) {
     return null;
@@ -7,7 +15,7 @@ export const fetchPatientInfo = async (patientId: string): Promise<PatientInfo |
 
   const response = await fetch(`/api/patients/${encodeURIComponent(patientId)}`, { cache: 'no-store' });
   if (!response.ok) {
-    console.error('환자정보 조회 실패', response.statusText);
+    console.error('환자 정보 조회 실패', response.statusText);
     return null;
   }
 
@@ -48,26 +56,23 @@ export const enrichItemsWithPatientInfo = async (studyItems: StudyItem[]): Promi
 
 export const fetchStudies = async (
   query: string,
-  selectedFilters: { xray: boolean; ct: boolean; cr: boolean; dx: boolean; date: boolean },
+  selectedFilters: StudyFilters,
   startDate: string,
   endDate: string
 ): Promise<Record<string, unknown>[]> => {
   const params = new URLSearchParams();
-  
+  const selectedModalities = [
+    selectedFilters.xray ? 'x-ray' : null,
+    selectedFilters.ct ? 'CT' : null,
+    selectedFilters.cr ? 'CR' : null,
+    selectedFilters.dx ? 'DX' : null,
+  ].filter(Boolean);
+
   if (query.trim()) {
     params.set('keyword', query.trim());
   }
-  if (selectedFilters.xray && !selectedFilters.ct && !selectedFilters.cr && !selectedFilters.dx) {
-    params.set('modality', 'x-ray');
-  }
-  if (selectedFilters.ct && !selectedFilters.xray && !selectedFilters.cr && !selectedFilters.dx) {
-    params.set('modality', 'CT');
-  }
-  if (selectedFilters.cr && !selectedFilters.xray && !selectedFilters.ct && !selectedFilters.dx) {
-    params.set('modality', 'CR');
-  }
-  if (selectedFilters.dx && !selectedFilters.xray && !selectedFilters.ct && !selectedFilters.cr) {
-    params.set('modality', 'DX');
+  if (selectedModalities.length === 1) {
+    params.set('modality', selectedModalities[0] as string);
   }
   if (selectedFilters.date && startDate) {
     params.set('from', startDate);
@@ -94,7 +99,7 @@ export const fetchStudies = async (
     : undefined;
 
   if (!rawItems) {
-    throw new Error('예상치 못한 응답 형식입니다.');
+    throw new Error('예상하지 못한 응답 형식입니다.');
   }
 
   return rawItems;

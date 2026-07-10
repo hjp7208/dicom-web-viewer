@@ -18,11 +18,11 @@ export const normalizeStudyItem = (item: Record<string, unknown>, index: number)
 
   const titleValue = String(getValue('studyDescription') ?? getValue('title') ?? '').trim();
   const accessionNumber = String(getValue('accessionNumber') ?? getValue('accession_number') ?? '').trim();
-  const fallbackAccessionNumber = `ACC-MOCK-${String(index + 1).padStart(3, '0')}`;
+  const fallbackAccessionNumber = `ACC-${String(index + 1).padStart(3, '0')}`;
 
   return {
     id,
-    title: titleValue || `의료영상${index + 1}`,
+    title: titleValue || `영상 검사 ${index + 1}`,
     modality: String(modalityValue ?? ''),
     tags,
     date: String(studyDateValue ?? dateValue ?? ''),
