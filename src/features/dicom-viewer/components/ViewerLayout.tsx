@@ -13,7 +13,6 @@ import initCornerstone from '../../../lib/cornerstoneInit';
 
 export default function ViewerLayout({ studyId }: { studyId?: string }) {
   const { 
-    loadedSeries, 
     setLoadedSeries, 
     activeViewportId, 
     setViewportSeriesMap, 
