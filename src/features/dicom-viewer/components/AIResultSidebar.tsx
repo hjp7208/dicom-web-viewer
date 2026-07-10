@@ -89,11 +89,14 @@ export default function AIResultSidebar() {
           >
             {/* Real Thumbnail Image or Fallback */}
             {result.thumbnailUrl ? (
-              <img 
-                src={result.thumbnailUrl} 
-                alt="AI Thumbnail" 
-                className="absolute inset-0 w-full h-full object-cover" 
-              />
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src={result.thumbnailUrl} 
+                  alt="AI Thumbnail" 
+                  className="absolute inset-0 w-full h-full object-cover" 
+                />
+              </>
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-neutral-500 pointer-events-none p-4 text-center">
                 <span className="text-xl font-bold text-neutral-400 mb-2">추론 png</span>
