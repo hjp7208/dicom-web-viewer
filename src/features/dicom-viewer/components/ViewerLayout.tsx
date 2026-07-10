@@ -46,10 +46,12 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
           return;
         }
 
-        // 1. 직접 SeriesData 배열 생성 (Blob 변환 및 파일 생성 오버헤드 제거)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const newLoadedSeries: SeriesData[] = data.seriesList.map((series: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const sortedInstances = (series.instances || []).sort((a: any, b: any) => a.instanceNumber - b.instanceNumber);
           
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const files = sortedInstances.map((inst: any) => ({
             file: new File([], inst.sopInstanceUid || 'dummy.dcm'), // 메모리를 차지하지 않는 빈 파일 객체
             patient: {
@@ -94,6 +96,7 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
           }));
 
           // Cornerstone에서 지연 로딩(Lazy Loading)을 위해 wadouri scheme 사용
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const imageIds = sortedInstances.map((inst: any) => `wadouri:${inst.pixelDataUrl}`);
 
           return {
