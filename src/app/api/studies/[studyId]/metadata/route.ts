@@ -19,17 +19,20 @@ const buildAuthHeader = () => {
 
 export async function GET(
   _request: Request,
-  { params }: { params: { studyId: string } },
+  { params }: { params: { id: string } },
 ) {
+  const { id: studyId } = params;
+
+  // 실제 백엔드 연동
   if (!BACKEND_BASE_URL) {
     return NextResponse.json({ message: 'BACKEND_BASE_URL is not configured.' }, { status: 500 });
   }
 
-  const { studyId } = params;
   if (!studyId) {
     return NextResponse.json({ message: 'studyId is required.' }, { status: 400 });
   }
 
+  const url = `${BACKEND_BASE_URL}/api/studies/${encodeURIComponent(studyId)}/metadata`;
   const headers: Record<string, string> = {
     Accept: 'application/json',
   };
@@ -40,13 +43,11 @@ export async function GET(
   }
 
   try {
-    const response = await fetch(`${BACKEND_BASE_URL}/api/studies/${encodeURIComponent(studyId)}/metadata`, {
-      headers,
-    });
+    const response = await fetch(url, { headers });
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error('Failed to fetch study metadata from backend:', error);
+    console.error("Failed to fetch metadata from backend:", error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
