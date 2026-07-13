@@ -17,6 +17,8 @@ interface DashboardSummary {
     }[];
 }
 
+const X_RAY_MODALITIES = ["CR", "DX", "XR", "RF", "XA"];
+
 export default function SummaryPanel() {
     const [data, setData] = useState<DashboardSummary | null>(null);
     const { isDark } = useThemeStore();
@@ -42,15 +44,31 @@ export default function SummaryPanel() {
         { label: "판독", value: counts.reports, icon: <FileText className="w-4 h-4" /> },
     ];
 
-    const maxCount = Math.max(...modality.map((m) => m.studyCount), 1);
+    const groupedModality = modality.reduce<{ modality: string; studyCount: number }[]>((acc, m) => {
+        const upper = m.modality.toUpperCase();
+
+        if (X_RAY_MODALITIES.includes(upper)) {
+            const existing = acc.find(a => a.modality === "X-Ray");
+            if (existing) existing.studyCount += m.studyCount;
+            else acc.push({ modality: "X-Ray", studyCount: m.studyCount });
+        } else if (["CT", "MG"].includes(upper)) {
+            acc.push({ modality: m.modality, studyCount: m.studyCount });
+        } else {
+            const existing = acc.find(a => a.modality === "OT");
+            if (existing) existing.studyCount += m.studyCount;
+            else acc.push({ modality: "OT", studyCount: m.studyCount });
+        }
+        return acc;
+    }, []);
+
+    const maxCount = Math.max(...groupedModality.map((m) => m.studyCount), 1);
 
     return (
-        <div className={`rounded-2xl p-5 border ${isDark ? "bg-neutral-900 border-neutral-700" : "bg-white border-slate-100"}`}>
+        <div className={`rounded-2xl p-5 border h-[340px] ${isDark ? "bg-neutral-900 border-neutral-700" : "bg-white border-slate-100"}`}>
             <h2 className={`text-sm font-medium mb-4 ${isDark ? "text-neutral-100" : "text-gray-900"}`}>
                 전체 통계
             </h2>
 
-            {/* Counts */}
             <div className="grid grid-cols-4 gap-2 mb-5">
                 {countItems.map((item) => (
                     <div key={item.label} className={`rounded-xl p-3 text-center ${isDark ? "bg-neutral-800" : "bg-gray-50"}`}>
@@ -67,15 +85,14 @@ export default function SummaryPanel() {
                 ))}
             </div>
 
-            {/* Modality Distribution */}
-            <p className={`text-xs font-medium mb-2 ${isDark ? "text-neutral-400" : "text-gray-500"}`}>
+            <p className={`text-xs font-medium mb-2 mt-10 ${isDark ? "text-neutral-400" : "text-gray-500"}`}>
                 모달리티별 검사 분포
             </p>
             <div className="space-y-2">
-                {modality.length === 0 && (
+                {groupedModality.length === 0 && (
                     <p className={`text-xs py-2 ${isDark ? "text-neutral-500" : "text-gray-400"}`}>데이터 없음</p>
                 )}
-                {modality.map((m) => (
+                {groupedModality.map((m) => (
                     <div key={m.modality} className="flex items-center gap-2">
                         <span className={`text-xs w-10 shrink-0 font-medium ${isDark ? "text-neutral-300" : "text-gray-700"}`}>
                             {m.modality}

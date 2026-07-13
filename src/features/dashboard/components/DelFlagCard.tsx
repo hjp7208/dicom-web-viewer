@@ -34,7 +34,7 @@ export default function DelFlagCard({
                 </div>
                 <div className="flex justify-between items-center">
                     <span className={`text-xs ${isDark ? "text-neutral-400" : "text-gray-400"}`}>
-                        {study.modality} · {study.studyDate.slice(0, 10)}
+                        {study.modality} · {study.studyDate?.slice(0, 10) ?? '-'}
                     </span>
                     <button
                         onClick={() => setShowModal(true)}
