@@ -63,6 +63,7 @@ interface StudyMetadataResponse {
 
 export default function ViewerLayout({ studyId }: { studyId?: string }) {
   const { 
+    loadedSeries,
     setLoadedSeries, 
     activeViewportId, 
     setViewportSeriesMap, 
@@ -235,9 +236,11 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
 
         {/* Center: Toolbar & Viewport */}
         <div className="flex-1 flex flex-col min-w-0 bg-black relative rounded-2xl border border-neutral-800 overflow-hidden shadow-2xl">
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
-             <Toolbar />
-          </div>
+          {loadedSeries && loadedSeries.length > 0 && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
+               <Toolbar />
+            </div>
+          )}
           <div className="flex-1 flex flex-col">
             <DicomViewer />
           </div>
