@@ -61,7 +61,7 @@ export default function AIResultSidebar() {
   };
 
   return (
-    <div className={`w-80 border-l flex flex-col h-full overflow-hidden ${isDark ? "bg-neutral-900 border-neutral-800" : "bg-white border-slate-200"}`}>
+    <div className={`w-80 border rounded-2xl shadow-xl flex flex-col h-full overflow-hidden ${isDark ? "bg-neutral-900 border-neutral-800" : "bg-white border-slate-200"}`}>
       <div className={`p-4 border-b shrink-0 ${isDark ? "border-neutral-800" : "border-slate-200"}`}>
         <h2 className={`font-semibold text-lg flex items-center gap-2 ${isDark ? "text-white" : "text-slate-900"}`}>
           AI 분석 결과

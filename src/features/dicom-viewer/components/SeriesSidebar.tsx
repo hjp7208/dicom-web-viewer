@@ -143,7 +143,7 @@ export default function SeriesSidebar() {
 
   if (loadedSeries.length === 0) {
     return (
-        <div className={`w-64 border-r flex flex-col h-full p-4 items-center justify-center text-sm text-center ${
+        <div className={`w-64 border rounded-2xl shadow-xl flex flex-col h-full p-4 items-center justify-center text-sm text-center ${
             isDark ? "bg-neutral-900 border-neutral-800 text-neutral-400" : "bg-white border-slate-200 text-slate-500"
         }`}>
           DICOM 파일을 우측 캔버스에<br/>드래그 앤 드롭 하세요.
@@ -152,7 +152,7 @@ export default function SeriesSidebar() {
   }
 
   return (
-      <div className={`w-64 border-r flex flex-col h-full ${isDark ? "bg-neutral-900 border-neutral-800" : "bg-white border-slate-200"}`}>
+      <div className={`w-64 border rounded-2xl shadow-xl overflow-hidden flex flex-col h-full ${isDark ? "bg-neutral-900 border-neutral-800" : "bg-white border-slate-200"}`}>
         {/* Filters */}
         <div className={`p-3 border-b flex flex-col gap-2 shrink-0 ${isDark ? "bg-neutral-900 border-neutral-800" : "bg-white border-slate-200"}`}>
           <select

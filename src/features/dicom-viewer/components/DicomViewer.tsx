@@ -58,7 +58,7 @@ export default function DicomViewer() {
   const numViewports = viewportLayout === '2x2' ? 4 : (viewportLayout === '1x2' ? 2 : 1);
 
   return (
-    <div className={`flex-1 w-full rounded-lg overflow-hidden shadow-2xl relative flex flex-col ${isDark ? "bg-neutral-900" : "bg-slate-100"}`}>
+    <div className={`flex-1 w-full relative flex flex-col h-full ${isDark ? "bg-neutral-900" : "bg-slate-100"}`}>
       {loadedSeries.length === 0 ? (
         <div
           className={`flex-1 flex flex-col items-center justify-center p-12 transition-colors duration-300 border-2 border-dashed m-2 ${isDragging

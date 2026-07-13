@@ -217,7 +217,7 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
   }, [studyId]);
 
   return (
-    <div className={`flex flex-col h-screen overflow-hidden font-sans relative ${isDark ? "bg-black" : "bg-white"}`}>
+    <div className={`flex flex-col h-screen overflow-hidden font-sans relative ${isDark ? "bg-neutral-950" : "bg-[#eef3f8]"}`}>
       {isLoadingStudy && (
         <div className={`absolute inset-0 z-50 flex items-center justify-center text-xl ${isDark ? "bg-black/80 text-white" : "bg-white/80 text-slate-900"
           }`}>
@@ -226,15 +226,15 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
       )}
 
       {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden p-4 gap-4">
         {/* Left Sidebar */}
         <SeriesSidebar />
         {/* Center: Toolbar & Viewport */}
-        <div className={`flex-1 flex flex-col min-w-0 relative ${isDark ? "bg-black" : "bg-slate-50"}`}>
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30 mt-2 shadow-lg rounded-lg">
+        <div className={`flex-1 flex flex-col min-w-0 relative rounded-2xl border overflow-hidden ${isDark ? "bg-black border-neutral-800 shadow-2xl" : "bg-slate-50 border-slate-200 shadow-sm"}`}>
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
             <Toolbar />
           </div>
-          <div className="flex-1 p-2 pb-0 flex flex-col">
+          <div className="flex-1 flex flex-col">
             <DicomViewer />
           </div>
         </div>
