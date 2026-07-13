@@ -30,6 +30,7 @@ interface ViewerState {
   activeSeriesUID: string | null;
   activeViewportId: string; // ID of the viewport currently receiving actions
   viewportSeriesMap: Record<string, string>; // Maps viewportId -> seriesUID
+  currentDbStudyId: string | null; // Database studyId
 
   aiResults: Record<string, AiResult[]>;
 
@@ -49,6 +50,7 @@ interface ViewerState {
   setActiveSeriesUID: (uid: string | null) => void;
   setActiveViewportId: (id: string) => void;
   setViewportSeriesMap: (viewportId: string, seriesUID: string) => void;
+  setCurrentDbStudyId: (id: string | null) => void;
 
   setAiResults: (seriesUID: string, results: AiResult[]) => void;
   resetViewer: () => void;
@@ -102,6 +104,7 @@ export const useViewerStore = create<ViewerState>((set) => ({
   setViewportSeriesMap: (viewportId, seriesUID) => set((state) => ({
     viewportSeriesMap: { ...state.viewportSeriesMap, [viewportId]: seriesUID }
   })),
+  setCurrentDbStudyId: (id) => set({ currentDbStudyId: id }),
 
   setAiResults: (seriesUID, results) => set((state) => ({ 
     aiResults: { ...state.aiResults, [seriesUID]: results } 
@@ -110,6 +113,7 @@ export const useViewerStore = create<ViewerState>((set) => ({
     loadedSeries: [],
     activeSeriesUID: null,
     viewportSeriesMap: {},
+    currentDbStudyId: null,
     aiResults: {},
     currentSliceIndex: 0,
     totalSlices: 0,

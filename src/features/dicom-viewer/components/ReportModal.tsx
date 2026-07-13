@@ -12,7 +12,8 @@ export default function ReportModal() {
     activeViewportId,
     viewportSeriesMap,
     aiResults,
-    memoText
+    memoText,
+    currentDbStudyId
   } = useViewerStore();
 
   const [physicianName, setPhysicianName] = useState("");
@@ -43,38 +44,71 @@ export default function ReportModal() {
       setIsReviewed(false);
       setLlmSummary("");
       
-      // 모의 LLM 호출 시작
-      setIsLlmLoading(true);
-      
-      // 1.5초 후 생성 완료를 모방하는 setTimeout
-      const timer = setTimeout(() => {
-        const generatedText = 
-`[의학 AI 추론 결과 요약]
-- 총 ${currentAiResults.length}건의 이상 소견이 발견되었습니다.
+      let isCancelled = false; // 클린업 플래그
+      let typingInterval: NodeJS.Timeout;
 
-[담당의 소견 메모]
-${memoText || "작성된 소견 메모가 없습니다."}
-
-[종합 소견]
-본 환자의 영상 자료와 담당의의 소견을 종합한 결과입니다. (LLM 요약 텍스트 예시)`;
-
-        // 타이핑 효과를 위해 한 글자씩 추가
-        let currentIndex = 0;
-        const typingInterval = setInterval(() => {
-          setLlmSummary(generatedText.slice(0, currentIndex + 1));
-          currentIndex++;
+      const generateReport = async () => {
+        setIsLlmLoading(true);
+        try {
+          // currentDbStudyId 사용
+          const studyIdVal = currentDbStudyId ? Number(currentDbStudyId) : 0;
           
-          if (currentIndex === generatedText.length) {
-            clearInterval(typingInterval);
+          const res = await fetch('/api/reports/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              studyId: studyIdVal, 
+              userMemo: memoText || '' 
+            })
+          });
+          
+          if (isCancelled) return;
+
+          if (!res.ok) {
+            setLlmSummary("LLM 리포트 생성에 실패했습니다. (상태 코드: " + res.status + ")");
+            setIsLlmLoading(false);
+            return;
+          }
+
+          const data = await res.json();
+          const generatedText = data.aiReportText || "생성된 내용이 없습니다.";
+
+          if (isCancelled) return;
+
+          // 타이핑 효과를 위해 한 글자씩 추가
+          let currentIndex = 0;
+          typingInterval = setInterval(() => {
+            if (isCancelled) {
+              clearInterval(typingInterval);
+              return;
+            }
+            
+            setLlmSummary(generatedText.slice(0, currentIndex + 1));
+            currentIndex++;
+            
+            if (currentIndex >= generatedText.length) {
+              clearInterval(typingInterval);
+              setIsLlmLoading(false);
+            }
+          }, 10);
+
+        } catch (error) {
+          if (!isCancelled) {
+            console.error("LLM Generation Error:", error);
+            setLlmSummary("LLM 연동 중 오류가 발생했습니다.");
             setIsLlmLoading(false);
           }
-        }, 10); // 한 글자당 10ms
-        
-      }, 1500);
+        }
+      };
 
-      return () => clearTimeout(timer);
+      generateReport();
+
+      return () => {
+        isCancelled = true;
+        if (typingInterval) clearInterval(typingInterval);
+      };
     }
-  }, [isReportModalOpen, metadata.referringPhysician, currentAiResults.length, memoText]);
+  }, [isReportModalOpen, metadata.referringPhysician, memoText, currentDbStudyId]);
 
   if (!isReportModalOpen) return null;
 
@@ -154,11 +188,21 @@ ${memoText || "작성된 소견 메모가 없습니다."}
               ) : (
                 currentAiResults.map((result) => (
                   <div key={result.id} className="flex bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm">
-                    {/* Mock Image Placeholder */}
+                    {/* Real Image or Fallback Placeholder */}
                     <div className="w-48 h-48 bg-red-100 flex flex-col items-center justify-center shrink-0 border-r border-neutral-200 relative overflow-hidden">
-                      <div className="text-xl font-bold text-red-900 mb-2">추론 png</div>
-                      <div className="text-sm text-red-800">(대표 슬라이스 {result.sliceIndex + 1})</div>
-                      {/* Note: 메인 캔버스 연동 기능은 요구사항에 따라 제거되었습니다. */}
+                      {result.thumbnailUrl ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img 
+                          src={result.thumbnailUrl} 
+                          alt="AI Inference Thumbnail" 
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      ) : (
+                        <>
+                          <div className="text-xl font-bold text-red-900 mb-2">추론 png</div>
+                          <div className="text-sm text-red-800">(대표 슬라이스 {result.sliceIndex + 1})</div>
+                        </>
+                      )}
                     </div>
                     {/* Mock AI Text Output */}
                     <div className="p-4 flex-1 flex flex-col justify-center">
