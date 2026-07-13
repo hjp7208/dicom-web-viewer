@@ -188,11 +188,21 @@ export default function ReportModal() {
               ) : (
                 currentAiResults.map((result) => (
                   <div key={result.id} className="flex bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm">
-                    {/* Mock Image Placeholder */}
+                    {/* Real Image or Fallback Placeholder */}
                     <div className="w-48 h-48 bg-red-100 flex flex-col items-center justify-center shrink-0 border-r border-neutral-200 relative overflow-hidden">
-                      <div className="text-xl font-bold text-red-900 mb-2">추론 png</div>
-                      <div className="text-sm text-red-800">(대표 슬라이스 {result.sliceIndex + 1})</div>
-                      {/* Note: 메인 캔버스 연동 기능은 요구사항에 따라 제거되었습니다. */}
+                      {result.thumbnailUrl ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img 
+                          src={result.thumbnailUrl} 
+                          alt="AI Inference Thumbnail" 
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      ) : (
+                        <>
+                          <div className="text-xl font-bold text-red-900 mb-2">추론 png</div>
+                          <div className="text-sm text-red-800">(대표 슬라이스 {result.sliceIndex + 1})</div>
+                        </>
+                      )}
                     </div>
                     {/* Mock AI Text Output */}
                     <div className="p-4 flex-1 flex flex-col justify-center">
