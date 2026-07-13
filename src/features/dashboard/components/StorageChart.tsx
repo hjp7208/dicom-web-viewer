@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { getStorage } from "@/features/dashboard/api/storage";
+import { useThemeStore } from "@/features/theme/useThemeStore";
 
 interface StorageData {
     dbGb: number;
@@ -14,6 +15,7 @@ interface StorageData {
 
 export default function StorageChart() {
     const [data, setData] = useState<StorageData | null>(null);
+    const { isDark } = useThemeStore();
 
     useEffect(() => {
         getStorage().then(setData).catch(console.error);
@@ -22,7 +24,6 @@ export default function StorageChart() {
     const dicomUsedGb = data?.totalGb ?? 0;
     const totalCapacity = data?.diskTotalGb && data.diskTotalGb > 0 ? data.diskTotalGb : null;
     const realFreeGb = data?.diskFreeGb ?? 0;
-    
     const systemUsedGb = totalCapacity ? Math.max(0, totalCapacity - realFreeGb - dicomUsedGb) : 0;
 
     const chartData = totalCapacity
@@ -36,9 +37,14 @@ export default function StorageChart() {
             { name: "여유", value: 1 },
         ];
 
+    const freeColor = isDark ? "#3F3F46" : "#E5E7EB";
+    const systemColor = isDark ? "#6B7280" : "#9CA3AF";
+
     return (
-        <div className="bg-white rounded-2xl p-5">
-            <h2 className="text-sm font-medium mb-4">스토리지 가용량</h2>
+        <div className={`rounded-2xl p-5 border h-[360px] ${isDark ? "bg-neutral-900 border-neutral-700" : "bg-white border-slate-100"}`}>
+            <h2 className={`text-sm font-medium mb-4 ${isDark ? "text-neutral-100" : "text-gray-900"}`}>
+                스토리지 가용량
+            </h2>
             <div className="flex flex-col items-center">
                 <PieChart width={200} height={200}>
                     <Pie
@@ -53,14 +59,14 @@ export default function StorageChart() {
                     >
                         {totalCapacity ? (
                             <>
-                                <Cell fill="#6C3FC5" />
-                                <Cell fill="#9CA3AF" />
-                                <Cell fill="#E5E7EB" />
+                                <Cell fill="#3B82F6" />
+                                <Cell fill={systemColor} />
+                                <Cell fill={freeColor} />
                             </>
                         ) : (
                             <>
-                                <Cell fill="#6C3FC5" />
-                                <Cell fill="#E5E7EB" />
+                                <Cell fill="#3B82F6" />
+                                <Cell fill={freeColor} />
                             </>
                         )}
                     </Pie>
@@ -69,22 +75,22 @@ export default function StorageChart() {
 
                 <div className="flex gap-4 mt-3 text-[10px]">
                     <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full bg-[#6C3FC5]" />
-                        <span className="text-gray-500">DICOM</span>
+                        <div className="w-2 h-2 rounded-full bg-[#3B82F6]" />
+                        <span className={isDark ? "text-neutral-400" : "text-gray-500"}>DICOM</span>
                     </div>
                     {totalCapacity && (
                         <div className="flex items-center gap-1.5">
-                            <div className="w-2 h-2 rounded-full bg-[#9CA3AF]" />
-                            <span className="text-gray-500">시스템</span>
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: systemColor }} />
+                            <span className={isDark ? "text-neutral-400" : "text-gray-500"}>시스템</span>
                         </div>
                     )}
                     <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full bg-[#E5E7EB]" />
-                        <span className="text-gray-500">여유</span>
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: freeColor }} />
+                        <span className={isDark ? "text-neutral-400" : "text-gray-500"}>여유</span>
                     </div>
                 </div>
 
-                <p className="text-xs text-gray-400 mt-2">
+                <p className={`text-xs mt-2 ${isDark ? "text-neutral-400" : "text-gray-400"}`}>
                     {dicomUsedGb.toFixed(1)} GB (DICOM) {totalCapacity ? `/ ${totalCapacity.toFixed(1)} GB (전체)` : ""}
                 </p>
             </div>
