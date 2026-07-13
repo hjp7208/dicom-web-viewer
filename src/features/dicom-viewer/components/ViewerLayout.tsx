@@ -5,9 +5,9 @@ import SeriesSidebar from './SeriesSidebar';
 import AIResultSidebar from './AIResultSidebar';
 import Toolbar from './Toolbar';
 import DicomViewer from './DicomViewer';
-import Header from '@/components/layout/Header';
 import ReportModal from './ReportModal';
 import { useViewerStore } from '../store/useViewerStore';
+import { useThemeStore } from '@/features/theme/useThemeStore';
 import { SeriesData } from '../utils/dicomParserUtil';
 import initCornerstone from '../../../lib/cornerstoneInit';
 
@@ -62,19 +62,21 @@ interface StudyMetadataResponse {
 }
 
 export default function ViewerLayout({ studyId }: { studyId?: string }) {
-  const { 
+
+  const {
     loadedSeries,
-    setLoadedSeries, 
-    activeViewportId, 
-    setViewportSeriesMap, 
-    setActiveSeriesUID, 
-    setCurrentSeriesName, 
-    setTotalSlices, 
+    setLoadedSeries,
+    activeViewportId,
+    setViewportSeriesMap,
+    setActiveSeriesUID,
+    setCurrentSeriesName,
+    setTotalSlices,
     setAiResults,
     setCurrentDbStudyId,
     resetViewer
   } = useViewerStore();
-  
+
+  const { isDark } = useThemeStore();
   const [isLoadingStudy, setIsLoadingStudy] = useState(false);
 
   useEffect(() => {
@@ -94,19 +96,18 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
         }
 
         const data = (await response.json()) as StudyMetadataResponse;
-        
+
         if (!data.seriesList || data.seriesList.length === 0) {
           console.warn("No DICOM series found in the study data");
           setIsLoadingStudy(false);
           return;
         }
 
-        // 1. 직접 SeriesData 배열 생성 (Blob 변환 및 파일 생성 오버헤드 제거)
         const newLoadedSeries: SeriesData[] = data.seriesList.map((series: StudyMetadataSeries) => {
           const sortedInstances = (series.instances || []).sort((a: StudyMetadataInstance, b: StudyMetadataInstance) => (a.instanceNumber || 0) - (b.instanceNumber || 0));
-          
+
           const files = sortedInstances.map((inst: StudyMetadataInstance) => ({
-            file: new File([], inst.sopInstanceUid || 'dummy.dcm'), // 메모리를 차지하지 않는 빈 파일 객체
+            file: new File([], inst.sopInstanceUid || 'dummy.dcm'),
             patient: {
               name: data.patient?.name || '',
               id: data.patient?.id || '',
@@ -141,14 +142,13 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
               windowLevel: inst.windowLevel || 40,
               rescaleSlope: inst.rescaleSlope || 1,
               rescaleIntercept: inst.rescaleIntercept || -1024,
-              imageOrientation: inst.imageOrientation || [1,0,0,0,1,0],
+              imageOrientation: inst.imageOrientation || [1, 0, 0, 0, 1, 0],
               sliceLocation: inst.sliceLocation || 0,
               pixelDataUrl: inst.pixelDataUrl,
               numberOfFrames: 1
             }
           }));
 
-          // Cornerstone에서 지연 로딩(Lazy Loading)을 위해 wadouri scheme 사용
           const imageIds = sortedInstances.map((inst: StudyMetadataInstance) => `wadouri:${inst.pixelDataUrl}`);
 
           return {
@@ -161,14 +161,11 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
           } as SeriesData;
         });
 
-        // 2. Cornerstone 초기화 및 상태 업데이트
         await initCornerstone();
-        
+
         setLoadedSeries(newLoadedSeries);
 
         if (newLoadedSeries.length > 0) {
-          // 메인 시리즈 찾기 (SC, SR 등 분석 결과가 아닌 원본 영상 시리즈)
-          // 여러 개가 있다면 이미지가 가장 많은 시리즈를 메인으로 간주
           const mainSeries = newLoadedSeries
             .filter(s => s.series.modality !== 'SC' && s.series.modality !== 'SR')
             .sort((a, b) => b.imageIds.length - a.imageIds.length)[0] || newLoadedSeries[0];
@@ -177,11 +174,11 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
           setActiveSeriesUID(mainSeries.seriesUID);
           setCurrentSeriesName(mainSeries.series.seriesDescription || mainSeries.series.modality);
           setTotalSlices(mainSeries.imageIds.length);
-          
+
           // 실제 AI 결과 서버에서 가져오기 (Next.js proxy route 사용)
           try {
             const reportRes = await fetch(`/api/reports/${studyId}`);
-            
+
             if (reportRes.ok) {
               const reportData = await reportRes.json();
               if (reportData.scKey) {
@@ -190,9 +187,9 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
                 // 실제 데이터를 스토어에 세팅
                 const realAiResult = {
                   id: reportData.id.toString(),
-                  sliceIndex: 0, 
+                  sliceIndex: 0,
                   thumbnailUrl: previewUrl,
-                  lesion: { x: 0, y: 0, width: 0, height: 0 }, // 현재 백엔드 API에 좌표가 없다면 임시 숨김 처리
+                  lesion: { x: 0, y: 0, width: 0, height: 0 },
                   findings: reportData.aiResultJson || '결과'
                 };
                 setAiResults(mainSeries.seriesUID, [realAiResult]);
@@ -216,32 +213,28 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
     };
 
     loadStudyData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studyId]);
 
   return (
-    <div className="flex flex-col h-screen bg-neutral-950 overflow-hidden font-sans relative">
-      <Header />
-
+    <div className={`flex flex-col h-screen overflow-hidden font-sans relative ${isDark ? "bg-black" : "bg-white"}`}>
       {isLoadingStudy && (
-        <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center text-white text-xl">
+        <div className={`absolute inset-0 z-50 flex items-center justify-center text-xl ${isDark ? "bg-black/80 text-white" : "bg-white/80 text-slate-900"
+          }`}>
           스터디 데이터를 불러오는 중입니다...
         </div>
       )}
 
       {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden p-4 gap-4">
+      <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar */}
         <SeriesSidebar />
-
         {/* Center: Toolbar & Viewport */}
-        <div className="flex-1 flex flex-col min-w-0 bg-black relative rounded-2xl border border-neutral-800 overflow-hidden shadow-2xl">
-          {loadedSeries && loadedSeries.length > 0 && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
-               <Toolbar />
-            </div>
-          )}
-          <div className="flex-1 flex flex-col">
+        <div className={`flex-1 flex flex-col min-w-0 relative ${isDark ? "bg-black" : "bg-slate-50"}`}>
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30 mt-2 shadow-lg rounded-lg">
+            <Toolbar />
+          </div>
+          <div className="flex-1 p-2 pb-0 flex flex-col">
             <DicomViewer />
           </div>
         </div>
