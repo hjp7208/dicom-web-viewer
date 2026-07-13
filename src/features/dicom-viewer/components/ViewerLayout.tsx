@@ -70,6 +70,7 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
     setCurrentSeriesName, 
     setTotalSlices, 
     setAiResults,
+    setCurrentDbStudyId,
     resetViewer
   } = useViewerStore();
   
@@ -80,6 +81,9 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
 
     const loadStudyData = async () => {
       resetViewer();
+      if (studyId) {
+        setCurrentDbStudyId(studyId);
+      }
       setIsLoadingStudy(true);
       try {
         const response = await fetch(`/api/studies/${studyId}/metadata`);
@@ -173,27 +177,15 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
           setCurrentSeriesName(mainSeries.series.seriesDescription || mainSeries.series.modality);
           setTotalSlices(mainSeries.imageIds.length);
           
-          // 실제 AI 결과 서버에서 가져오기
+          // 실제 AI 결과 서버에서 가져오기 (Next.js proxy route 사용)
           try {
-            const configRes = await fetch('/api/dicom/config');
-            let authHeader = '';
-            // @ts-expect-error - Custom window property for DICOM base URL
-            let baseUrl = window.__DICOM_BASE_URL__ || '';
-            if (configRes.ok) {
-              const configData = await configRes.json();
-              authHeader = configData.auth || '';
-              if (configData.baseUrl) baseUrl = configData.baseUrl;
-            }
-            
-            const reportRes = await fetch(`${baseUrl}/api/reports/${studyId}`, {
-              headers: authHeader ? { 'Authorization': authHeader } : {}
-            });
+            const reportRes = await fetch(`/api/reports/${studyId}`);
             
             if (reportRes.ok) {
               const reportData = await reportRes.json();
               if (reportData.scKey) {
                 // S3키(또는 경로)를 preview API에 넘겨 PNG 썸네일을 받아옴
-                const previewUrl = `${baseUrl}/api/ai/preview?path=${encodeURIComponent(reportData.scKey)}`;
+                const previewUrl = `/api/ai/preview?path=${encodeURIComponent(reportData.scKey)}`;
                 // 실제 데이터를 스토어에 세팅
                 const realAiResult = {
                   id: reportData.id.toString(),
