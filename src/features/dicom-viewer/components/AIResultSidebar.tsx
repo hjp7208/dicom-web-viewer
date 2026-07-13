@@ -62,8 +62,8 @@ export default function AIResultSidebar() {
   };
 
   return (
-    <div className="w-80 bg-neutral-900 border-l border-neutral-800 flex flex-col h-full overflow-hidden">
-      <div className="p-4 border-b border-neutral-800 shrink-0">
+    <div className="w-80 bg-neutral-900 border border-neutral-800 flex flex-col h-full overflow-hidden rounded-2xl shadow-xl">
+      <div className="p-4 border-b border-neutral-800 shrink-0 bg-neutral-900">
         <h2 className="text-white font-semibold text-lg flex items-center gap-2">
           AI 분석 결과
           <span className="bg-red-500/20 text-red-400 text-xs px-2 py-0.5 rounded-full">

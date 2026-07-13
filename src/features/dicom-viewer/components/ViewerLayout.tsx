@@ -219,7 +219,7 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
   }, [studyId]);
 
   return (
-    <div className="flex flex-col h-screen bg-black overflow-hidden font-sans relative">
+    <div className="flex flex-col h-screen bg-neutral-950 overflow-hidden font-sans relative">
       <Header />
 
       {isLoadingStudy && (
@@ -229,16 +229,16 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
       )}
 
       {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden p-4 gap-4">
         {/* Left Sidebar */}
         <SeriesSidebar />
 
         {/* Center: Toolbar & Viewport */}
-        <div className="flex-1 flex flex-col min-w-0 bg-black relative">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30 mt-2 shadow-lg rounded-lg">
+        <div className="flex-1 flex flex-col min-w-0 bg-black relative rounded-2xl border border-neutral-800 overflow-hidden shadow-2xl">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
              <Toolbar />
           </div>
-          <div className="flex-1 p-2 pb-0 flex flex-col">
+          <div className="flex-1 flex flex-col">
             <DicomViewer />
           </div>
         </div>

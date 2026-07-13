@@ -140,14 +140,14 @@ export default function SeriesSidebar() {
 
   if (loadedSeries.length === 0) {
     return (
-      <div className="w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col h-full p-4 items-center justify-center text-neutral-400 text-sm text-center">
+      <div className="w-64 bg-neutral-900 border border-neutral-800 rounded-2xl flex flex-col h-full p-4 items-center justify-center text-neutral-400 text-sm text-center shadow-xl">
         DICOM 파일을 우측 캔버스에<br/>드래그 앤 드롭 하세요.
       </div>
     );
   }
 
   return (
-    <div className="w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col h-full">
+    <div className="w-64 bg-neutral-900 border border-neutral-800 rounded-2xl flex flex-col h-full shadow-xl overflow-hidden">
       {/* Filters */}
       <div className="p-3 border-b border-neutral-800 flex flex-col gap-2 shrink-0 bg-neutral-900">
         <select 
