@@ -57,3 +57,11 @@ metadata*.json
 studies.json
 *.tmp.json
 tmp/
+
+# Extracted docx files
+docx_extracted/
+*.zip
+*.png
+
+# pptx
+*.pptx
