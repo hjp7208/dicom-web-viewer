@@ -28,7 +28,7 @@ export default function DelFlagCard({
                     <span className={`text-sm font-medium ${isDark ? "text-neutral-200" : "text-gray-900"}`}>
                         {study.patientId}
                     </span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">
                         대기중
                     </span>
                 </div>
@@ -38,7 +38,7 @@ export default function DelFlagCard({
                     </span>
                     <button
                         onClick={() => setShowModal(true)}
-                        className="text-xs text-purple-400"
+                        className="text-xs text-blue-400"
                     >
                         복구
                     </button>
@@ -66,7 +66,7 @@ export default function DelFlagCard({
                                     onRestore(study.id);
                                     setShowModal(false);
                                 }}
-                                className="text-xs px-4 py-2 rounded-lg bg-purple-600 text-white"
+                                className="text-xs px-4 py-2 rounded-lg bg-blue-600 text-white"
                             >
                                 확인
                             </button>

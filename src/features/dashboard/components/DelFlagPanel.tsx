@@ -58,7 +58,7 @@ export default function DelFlagPanel() {
     const deletedTotalGb = (deletedTotalBytes / 1024 / 1024 / 1024).toFixed(2);
 
     return (
-        <div className={`rounded-2xl p-5 h-[660px] border ${isDark ? "bg-neutral-900 border-neutral-700" : "bg-white border-slate-100"}`}>
+        <div className={`rounded-2xl p-5 h-[725px] border ${isDark ? "bg-neutral-900 border-neutral-700" : "bg-white border-slate-100"}`}>
             <div className="flex justify-between items-center mb-1">
                 <h2 className={`text-sm font-medium ${isDark ? "text-neutral-100" : "text-gray-900"}`}>
                     DELFLAG 현황
