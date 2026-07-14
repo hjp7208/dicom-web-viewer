@@ -41,7 +41,7 @@ export default function StorageChart() {
     const systemColor = isDark ? "#6B7280" : "#9CA3AF";
 
     return (
-        <div className={`rounded-2xl p-5 border h-[360px] ${isDark ? "bg-neutral-900 border-neutral-700" : "bg-white border-slate-100"}`}>
+        <div className={`rounded-2xl p-5 border h-[340px] ${isDark ? "bg-neutral-900 border-neutral-700" : "bg-white border-slate-100"}`}>
             <h2 className={`text-sm font-medium mb-4 ${isDark ? "text-neutral-100" : "text-gray-900"}`}>
                 스토리지 가용량
             </h2>

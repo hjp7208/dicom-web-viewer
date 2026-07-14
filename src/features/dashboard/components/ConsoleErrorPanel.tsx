@@ -52,7 +52,7 @@ export default function ConsoleErrorPanel() {
     const clearErrors = () => setErrors([]);
 
     return (
-        <div className={`rounded-2xl p-5 border h-[120px] flex flex-col max-h-[500px] ${isDark ? "bg-neutral-900 border-neutral-700" : "bg-white border-slate-100"}`}>
+        <div className={`rounded-2xl p-5 border h-[155px] flex flex-col max-h-[500px] ${isDark ? "bg-neutral-900 border-neutral-700" : "bg-white border-slate-100"}`}>
             <div className="flex justify-between items-center mb-3 shrink-0">
                 <h2 className={`text-sm font-medium flex items-center gap-2 ${isDark ? "text-neutral-100" : "text-gray-900"}`}>
                     <AlertTriangle className="w-4 h-4 text-amber-500" />
