@@ -80,6 +80,7 @@ export const useViewerStore = create<ViewerState>((set) => ({
   activeSeriesUID: null,
   activeViewportId: 'dicom_viewport_0',
   viewportSeriesMap: {},
+  currentDbStudyId: null,
 
   aiResults: {},
 

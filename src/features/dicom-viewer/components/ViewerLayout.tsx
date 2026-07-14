@@ -64,7 +64,6 @@ interface StudyMetadataResponse {
 export default function ViewerLayout({ studyId }: { studyId?: string }) {
 
   const {
-    loadedSeries,
     setLoadedSeries,
     activeViewportId,
     setViewportSeriesMap,
