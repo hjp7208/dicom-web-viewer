@@ -112,23 +112,7 @@ export const processAndMergeSeries = (
   return Array.from(newMap.values());
 };
 
-export const generateMockAiResults = (totalSlices: number) => {
-  const numResults = Math.min(5, totalSlices);
-  const slices = new Set<number>();
-  while (slices.size < numResults) {
-    slices.add(Math.floor(Math.random() * totalSlices));
-  }
-  return Array.from(slices).sort((a, b) => a - b).map((sliceIndex, i) => ({
-    id: i + 1,
-    sliceIndex,
-    lesion: {
-      x: 0.2 + Math.random() * 0.5,
-      y: 0.2 + Math.random() * 0.5,
-      width: 0.05 + Math.random() * 0.15,
-      height: 0.05 + Math.random() * 0.15
-    }
-  }));
-};
+
 
 export const processZipFiles = async (
   files: File[],

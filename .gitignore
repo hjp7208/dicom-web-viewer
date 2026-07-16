@@ -65,3 +65,6 @@ docx_extracted/
 
 # pptx
 *.pptx
+
+# txt
+*.txt
