@@ -2,7 +2,7 @@ import { useState, DragEvent } from 'react';
 import { useViewerStore } from '../store/useViewerStore';
 import { parseDicomFiles } from '../utils/dicomParserUtil';
 import initCornerstone from '../../../lib/cornerstoneInit';
-import { getFilesFromDataTransfer, processAndMergeSeries, generateMockAiResults, processZipFiles } from '../utils/fileUploadUtil';
+import { getFilesFromDataTransfer, processAndMergeSeries, processZipFiles } from '../utils/fileUploadUtil';
 
 export const useDicomFileDrop = () => {
   const [isDragging, setIsDragging] = useState(false);
@@ -17,7 +17,6 @@ export const useDicomFileDrop = () => {
     setViewportSeriesMap,
     setCurrentSeriesName,
     setTotalSlices,
-    setAiResults,
     setActiveSeriesUID
   } = useViewerStore();
 
@@ -78,8 +77,6 @@ export const useDicomFileDrop = () => {
             setCurrentSeriesName(firstSeries.series.seriesDescription);
             setTotalSlices(firstSeries.imageIds.length);
 
-            // Generate Random AI Results for the first series
-            setAiResults(firstSeries.seriesUID, generateMockAiResults(firstSeries.imageIds.length));
           }
           setIsParsing(false);
           setUploadProgress(0);
