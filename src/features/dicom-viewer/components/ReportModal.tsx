@@ -5,10 +5,10 @@ import { useViewerStore } from "@/features/dicom-viewer/store/useViewerStore";
 import { Loader2, Check } from "lucide-react";
 
 export default function ReportModal() {
-  const { 
-    isReportModalOpen, 
-    setIsReportModalOpen, 
-    loadedSeries, 
+  const {
+    isReportModalOpen,
+    setIsReportModalOpen,
+    loadedSeries,
     activeViewportId,
     viewportSeriesMap,
     aiResults,
@@ -25,7 +25,7 @@ export default function ReportModal() {
   const currentSeriesUID = viewportSeriesMap[activeViewportId];
   const activeSeries = loadedSeries.find(s => s.seriesUID === currentSeriesUID);
   const currentAiResults = currentSeriesUID ? (aiResults[currentSeriesUID] || []) : [];
-  
+
   // 환자/검사 메타데이터
   const metadata = {
     patientName: activeSeries?.patient.name || "Unknown",
@@ -43,7 +43,7 @@ export default function ReportModal() {
       setPhysicianName(metadata.referringPhysician);
       setIsReviewed(false);
       setLlmSummary("");
-      
+
       let isCancelled = false; // 클린업 플래그
       let typingInterval: NodeJS.Timeout;
 
@@ -52,16 +52,16 @@ export default function ReportModal() {
         try {
           // currentDbStudyId 사용
           const studyIdVal = currentDbStudyId ? Number(currentDbStudyId) : 0;
-          
+
           const res = await fetch('/api/reports/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              studyId: studyIdVal, 
-              userMemo: memoText || '' 
+            body: JSON.stringify({
+              studyId: studyIdVal,
+              userMemo: memoText || ''
             })
           });
-          
+
           if (isCancelled) return;
 
           if (!res.ok) {
@@ -82,10 +82,10 @@ export default function ReportModal() {
               clearInterval(typingInterval);
               return;
             }
-            
+
             setLlmSummary(generatedText.slice(0, currentIndex + 1));
             currentIndex++;
-            
+
             if (currentIndex >= generatedText.length) {
               clearInterval(typingInterval);
               setIsLlmLoading(false);
@@ -126,15 +126,15 @@ export default function ReportModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="bg-white text-neutral-900 w-full max-w-4xl max-h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
-        
+
         {/* Header Section */}
         <div className="p-6 border-b border-neutral-200 shrink-0">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold">영상의학 판독 및 임상 소견</h2>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-neutral-600">진찰의:</span>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={physicianName}
                 onChange={(e) => setPhysicianName(e.target.value)}
                 placeholder="직접 입력 가능"
@@ -142,7 +142,7 @@ export default function ReportModal() {
               />
             </div>
           </div>
-          
+
           {/* Metadata Grid */}
           <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm text-neutral-700 bg-neutral-50 p-4 rounded-lg">
             <div className="flex justify-between">
@@ -174,7 +174,7 @@ export default function ReportModal() {
 
         {/* Scrollable Content Section */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-neutral-50/50">
-          
+
           {/* AI Inference Section */}
           <div>
             <h3 className="text-sm font-bold text-neutral-500 mb-3 uppercase tracking-wider">
@@ -192,9 +192,9 @@ export default function ReportModal() {
                     <div className="w-48 h-48 bg-red-100 flex flex-col items-center justify-center shrink-0 border-r border-neutral-200 relative overflow-hidden">
                       {result.thumbnailUrl ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
-                        <img 
-                          src={result.thumbnailUrl} 
-                          alt="AI Inference Thumbnail" 
+                        <img
+                          src={result.thumbnailUrl}
+                          alt="AI Inference Thumbnail"
                           className="absolute inset-0 w-full h-full object-cover"
                         />
                       ) : (
@@ -225,16 +225,15 @@ export default function ReportModal() {
               소견 메모와 AI 분석결과를 종합해 요약한 소견서
             </h3>
             <div className="relative">
-              <textarea 
+              <textarea
                 value={llmSummary}
                 onChange={(e) => setLlmSummary(e.target.value)}
                 disabled={isLlmLoading}
-                className={`w-full h-48 p-4 border border-neutral-200 rounded-lg bg-neutral-100 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white transition-all ${
-                  isLlmLoading ? 'text-neutral-400' : 'text-neutral-800'
-                }`}
+                className={`w-full h-48 p-4 border border-neutral-200 rounded-lg bg-neutral-100 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white transition-all ${isLlmLoading ? 'text-neutral-400' : 'text-neutral-800'
+                  }`}
                 placeholder="LLM이 소견서를 생성중입니다..."
               />
-              
+
               {/* Loading Overlay inside Textarea */}
               {isLlmLoading && (
                 <div className="absolute top-4 right-4 flex items-center gap-2 text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full shadow-sm">
@@ -254,8 +253,8 @@ export default function ReportModal() {
           <div className="flex items-center justify-center mb-6">
             <label className="flex items-center gap-3 cursor-pointer group select-none">
               <div className="relative flex items-center justify-center">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={isReviewed}
                   onChange={(e) => setIsReviewed(e.target.checked)}
                   className="peer sr-only"
@@ -270,35 +269,33 @@ export default function ReportModal() {
           </div>
 
           <div className="flex items-center justify-center gap-4">
-            <button 
+            <button
               onClick={() => setIsReportModalOpen(false)}
               className="px-6 py-2.5 bg-neutral-200 text-neutral-700 hover:bg-neutral-300 rounded-lg font-medium transition-colors min-w-[120px]"
             >
               취소
             </button>
-            
+
             {/* 액션 버튼들 (체크 여부에 따라 활성화/비활성화) */}
-            <button 
+            <button
               onClick={handleResearchDbSubmit}
               disabled={!isReviewed}
-              className={`px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm min-w-[160px] ${
-                isReviewed 
-                  ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
+              className={`px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm min-w-[160px] ${isReviewed
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-700'
                   : 'bg-indigo-300 text-white/70 cursor-not-allowed'
-              }`}
+                }`}
             >
               연구 DB에 소견 제출
             </button>
-            <button 
+            <button
               onClick={handleErmSubmit}
               disabled={!isReviewed}
-              className={`px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm min-w-[120px] ${
-                isReviewed 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+              className={`px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm min-w-[120px] ${isReviewed
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
                   : 'bg-blue-300 text-white/70 cursor-not-allowed'
-              }`}
+                }`}
             >
-              ERM에 제출
+              EMR에 제출
             </button>
           </div>
         </div>
