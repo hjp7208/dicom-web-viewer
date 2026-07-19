@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneTools from '@cornerstonejs/tools';
 import { useViewerStore } from '../store/useViewerStore';
@@ -31,6 +31,8 @@ export const useCornerstoneViewport = ({
   const [voi, setVoi] = useState<{ ww: number | string, wc: number | string }>({ ww: 'Auto', wc: 'Auto' });
   const [aiOverlayBox, setAiOverlayBox] = useState<{ left: number; top: number; width: number; height: number; } | null>(null);
   const { activeTool, setCurrentSliceIndex, showAiOverlay, resetTrigger, presetTrigger, jumpSliceTrigger } = useViewerStore();
+  const initialCameraRef = useRef<any>(null);
+  const initialPropertiesRef = useRef<any>(null);
 
   const updateOverlay = () => {
     const v = cornerstone.getRenderingEngine(renderingEngineId)?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
@@ -146,6 +148,10 @@ export const useCornerstoneViewport = ({
 
         await viewport.setStack(series.imageIds, 0);
         viewport.render();
+        
+        // 초기 렌더링 시점의 완벽한 뷰포트 상태를 저장해둡니다 (리셋 용도)
+        initialCameraRef.current = viewport.getCamera();
+        initialPropertiesRef.current = viewport.getProperties();
 
         const updateViewportInfo = () => {
           const v = cornerstone.getRenderingEngine(renderingEngineId)?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
@@ -334,8 +340,17 @@ export const useCornerstoneViewport = ({
     const renderingEngine = cornerstone.getRenderingEngine(renderingEngineId);
     const viewport = renderingEngine?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
     if (viewport) {
+      // 1. 카메라는 엔진의 자체 기능을 사용 (화면 크기 변화 대응 및 현재 보고 있는 슬라이스 위치 유지)
       viewport.resetCamera();
-      if (viewport.resetProperties) viewport.resetProperties();
+
+      // 2. 색상 관련 프로퍼티는 고질적인 버그 방지를 위해 저장해 둔 첫 상태에서 필요한 속성만 복원
+      if (initialPropertiesRef.current) {
+        const { voiRange, invert } = initialPropertiesRef.current;
+        viewport.setProperties({ voiRange, invert });
+      } else if (viewport.resetProperties) {
+        viewport.resetProperties();
+      }
+
       cornerstoneTools.annotation.state.getAnnotationManager().removeAllAnnotations();
       viewport.render();
     }
