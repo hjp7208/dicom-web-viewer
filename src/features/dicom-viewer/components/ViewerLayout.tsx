@@ -216,7 +216,7 @@ export default function ViewerLayout({ studyId }: { studyId?: string }) {
   }, [studyId]);
 
   return (
-    <div className={`flex flex-col h-screen overflow-hidden font-sans relative ${isDark ? "bg-neutral-950" : "bg-[#eef3f8]"}`}>
+    <div className={`flex flex-col h-[calc(100vh-4rem)] overflow-hidden font-sans relative ${isDark ? "bg-neutral-950" : "bg-[#eef3f8]"}`}>
       {isLoadingStudy && (
         <div className={`absolute inset-0 z-50 flex items-center justify-center text-xl ${isDark ? "bg-black/80 text-white" : "bg-white/80 text-slate-900"
           }`}>
