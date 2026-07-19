@@ -197,7 +197,12 @@ export const useCornerstoneViewport = ({
             const worldPos = v.canvasToWorld(canvasPos);
             const imageId = v.getCurrentImageId();
             if (imageId) {
-              const ij = cornerstone.utilities.worldToImageCoords(imageId, worldPos);
+              let ij: Array<number> | undefined;
+              try {
+                ij = cornerstone.utilities.worldToImageCoords(imageId, worldPos);
+              } catch {
+                // 흉부 CR 등 ImagePlaneModule 태그가 없는 2D 영상의 경우 예외 발생 방지
+              }
               if (ij) {
                 const i = Math.round(ij[0]);
                 const j = Math.round(ij[1]);
