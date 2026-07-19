@@ -31,8 +31,8 @@ export const useCornerstoneViewport = ({
   const [voi, setVoi] = useState<{ ww: number | string, wc: number | string }>({ ww: 'Auto', wc: 'Auto' });
   const [aiOverlayBox, setAiOverlayBox] = useState<{ left: number; top: number; width: number; height: number; } | null>(null);
   const { activeTool, setCurrentSliceIndex, showAiOverlay, resetTrigger, presetTrigger, jumpSliceTrigger } = useViewerStore();
-  const initialCameraRef = useRef<any>(null);
-  const initialPropertiesRef = useRef<any>(null);
+  const initialCameraRef = useRef<ReturnType<cornerstone.Types.IStackViewport['getCamera']> | null>(null);
+  const initialPropertiesRef = useRef<ReturnType<cornerstone.Types.IStackViewport['getProperties']> | null>(null);
 
   const updateOverlay = () => {
     const v = cornerstone.getRenderingEngine(renderingEngineId)?.getViewport(viewportId) as cornerstone.Types.IStackViewport;
