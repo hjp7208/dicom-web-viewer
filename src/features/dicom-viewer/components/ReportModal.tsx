@@ -281,8 +281,8 @@ export default function ReportModal() {
               onClick={handleResearchDbSubmit}
               disabled={!isReviewed}
               className={`px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm min-w-[160px] ${isReviewed
-                  ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                  : 'bg-indigo-300 text-white/70 cursor-not-allowed'
+                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                : 'bg-indigo-300 text-white/70 cursor-not-allowed'
                 }`}
             >
               연구 DB에 소견 제출
@@ -291,11 +291,11 @@ export default function ReportModal() {
               onClick={handleErmSubmit}
               disabled={!isReviewed}
               className={`px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm min-w-[120px] ${isReviewed
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-blue-300 text-white/70 cursor-not-allowed'
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-blue-300 text-white/70 cursor-not-allowed'
                 }`}
             >
-              EMR에 제출
+              RIS에 제출
             </button>
           </div>
         </div>
